@@ -1,0 +1,6 @@
+include README.md
+
+recursive-include shuup_product_variations/locale *.mo
+recursive-include shuup_product_variations/templates *.jinja *.txt
+recursive-include shuup_product_variations/static *.*
+recursive-exclude shuup_product_variations/static *.map
