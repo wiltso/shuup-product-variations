@@ -19,10 +19,10 @@ from shuup.admin.shop_provider import get_shop
 from shuup.core.models import (
     Product, ProductVariationVariableValue, ShopProduct
 )
-from shuup.utils.djangoenv import has_installed 
+from shuup.utils.djangoenv import has_installed
 
 
-class ProductCombinations(DetailView):
+class ProductCombinationsView(DetailView):
     model = Product
 
     def get(self, request, *args, **kwargs):
@@ -59,7 +59,7 @@ class ProductCombinations(DetailView):
         return JsonResponse({"combinations": combinations_data, "product_data": list(product_data)})
 
 
-class ProductVariations(DetailView):
+class ProductVariationsView(DetailView):
     model = Product
 
     def get(self, request, *args, **kwargs):

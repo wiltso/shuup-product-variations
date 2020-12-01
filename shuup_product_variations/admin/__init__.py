@@ -17,23 +17,23 @@ from shuup.admin.views.home import HelpBlockCategory, SimpleHelpBlock
 
 
 class ProductVariationsModule(AdminModule):
-    name = _("Product Varitions")
- 
+    name = _("Product Variations")
+
     def get_urls(self):
         return [
             admin_url(
                 r"^shuup_product_variations/(?P<pk>\d+)/combinations/$",
-                "shuup_product_variations.admin.products.ProductCombinations",
+                "shuup_product_variations.admin.products.ProductCombinationsView",
                 name="shuup_product_variations.product_combinations"
             ),
             admin_url(
                 r"^shuup_product_variations/(?P<pk>\d+)/product_variations/$",
-                "shuup_product_variations.admin.products.ProductVariations",
+                "shuup_product_variations.admin.products.ProductVariationsView",
                 name="shuup_product_variations.product_variations"
             ),
             admin_url(
                 r"^shuup_product_variations/variations/$",
-                "shuup_product_variations.admin.variations.VariationsList",
+                "shuup_product_variations.admin.variations.VariationsListView",
                 name="shuup_product_variations.variations_list"
             )
         ]
