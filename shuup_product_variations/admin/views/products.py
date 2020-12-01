@@ -5,19 +5,25 @@
 #
 # This source code is licensed under the OSL-3.0 license found in the
 # LICENSE file in the root directory of this source tree.
+import json
 from collections import defaultdict
 
 import six
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db.models import OuterRef, Subquery
 from django.http import JsonResponse
 from django.utils.encoding import force_text
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic import DetailView
 from shuup.admin.shop_provider import get_shop
 from shuup.core.models import (
     Product, ProductVariationVariableValue, ShopProduct
 )
 from shuup.utils.djangoenv import has_installed
+from shuup_product_variations.admin.views.serializers import (
+    ProductCombinationsSerializer
+)
 
 
 class ProductCombinationsView(DetailView):
@@ -62,6 +68,45 @@ class ProductCombinationsView(DetailView):
             "combinations": combinations_data,
             "product_data": list(product_data)
         })
+
+    def post(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if not instance:
+            return JsonResponse({
+                "error": _("Product not found"),
+                "code": "product-not-found"
+            }, status=404)
+
+        try:
+            combinations = json.loads(request.body)
+        except (json.decoder.JSONDecodeError, TypeError):
+            return JsonResponse({
+                "error": _("Invalid content data"),
+                "code": "invalid-content"
+            }, status=400)
+
+        serializer = ProductCombinationsSerializer(
+            data=dict(combinations=combinations),
+            context=dict(
+                product=instance,
+                shop=get_shop(request)
+            )
+        )
+        if not serializer.is_valid():
+            return JsonResponse({
+                "error": serializer.errors,
+                "code": "validation-fail"
+            }, status=400)
+
+        try:
+            serializer.save()
+        except ValidationError as exc:
+            return JsonResponse({
+                "error": exc.message,
+                "code": exc.code
+            }, status=400)
+
+        return JsonResponse({})
 
 
 class ProductVariationsView(DetailView):

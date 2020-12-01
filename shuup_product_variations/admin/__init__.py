@@ -17,18 +17,18 @@ class ProductVariationsModule(AdminModule):
         return [
             admin_url(
                 r"^shuup_product_variations/(?P<pk>\d+)/combinations/$",
-                "shuup_product_variations.admin.products.ProductCombinationsView",
-                name="shuup_product_variations.product_combinations"
+                "shuup_product_variations.admin.views.products.ProductCombinationsView",
+                name="shuup_product_variations.product.combinations"
             ),
             admin_url(
                 r"^shuup_product_variations/(?P<pk>\d+)/product_variations/$",
-                "shuup_product_variations.admin.products.ProductVariationsView",
-                name="shuup_product_variations.product_variations"
+                "shuup_product_variations.admin.views.products.ProductVariationsView",
+                name="shuup_product_variations.product.variations"
             ),
             admin_url(
                 r"^shuup_product_variations/variations/$",
-                "shuup_product_variations.admin.variations.VariationsListView",
-                name="shuup_product_variations.variations_list"
+                "shuup_product_variations.admin.views.variations.VariationsListView",
+                name="shuup_product_variations.variations.list"
             )
         ]
 
