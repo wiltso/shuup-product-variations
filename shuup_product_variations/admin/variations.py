@@ -14,7 +14,7 @@ from django.views.generic import ListView
 from shuup_product_variations.models import VariationVariableValue
 
 
-class VariationsList(ListView):
+class VariationsListView(ListView):
     model = VariationVariableValue
 
     def get_queryset(self):
