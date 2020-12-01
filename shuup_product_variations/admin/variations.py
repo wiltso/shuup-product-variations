@@ -10,7 +10,6 @@ from collections import defaultdict
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.generic import ListView
-
 from shuup_product_variations.models import VariationVariableValue
 
 

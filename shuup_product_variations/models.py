@@ -10,7 +10,6 @@ from __future__ import unicode_literals
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from parler.models import TranslatableModel, TranslatedFields
-
 from shuup.core.fields import InternalIdentifierField
 from shuup.utils.django_compat import force_text
 from shuup.utils.models import SortableMixin
