@@ -5,32 +5,37 @@
 #
 # This source code is licensed under the OSL-3.0 license found in the
 # LICENSE file in the root directory of this source tree.
-from typing import Dict
+from decimal import Decimal
+from typing import Dict, Optional
 
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from shuup.core.models import (
     Product, ProductVariationLinkStatus, ProductVariationResult,
-    ProductVariationVariable, ProductVariationVariableValue, Shop, ShopProduct
+    ProductVariationVariable, ProductVariationVariableValue, Shop, ShopProduct,
+    Supplier
 )
 from shuup.core.models._product_variation import hash_combination
 
 
-def update_or_create_variation_product(shop: Shop, parent_product: Product, combination_data: Dict):
+def update_or_create_variation_product(shop: Shop,
+                                       supplier: Optional[Supplier],
+                                       parent_product: Product,
+                                       combination_data: Dict):
     sku = combination_data["sku"]   # type: str
     combination = combination_data["combination"]  # type: Dict[ProductVariationVariable, ProductVariationVariableValue]
     combination_hash = hash_combination(combination)
 
     # search the product by the combination hash
     variation_result = ProductVariationResult.objects.filter(
-        product__variation_parent=parent_product,
+        product=parent_product,
         combination_hash=combination_hash
     ).first()
 
     # there is already a variation value with a product set,
     # use it and make sure the status is active
     if variation_result:
-        variation_child = variation_result.product  # type: Product
+        variation_child = variation_result.result  # type: Product
 
         # validate whether the SKU is being used on a different product
         sku_being_used = Product.objects.filter(sku=sku).exclude(pk=variation_child.pk).exists()
@@ -41,6 +46,10 @@ def update_or_create_variation_product(shop: Shop, parent_product: Product, comb
         if variation_result.status != ProductVariationLinkStatus.VISIBLE:
             variation_result.status = ProductVariationLinkStatus.VISIBLE
             variation_result.save()
+
+        if variation_child.sku != sku:
+            variation_child.sku = sku
+            variation_child.save()
 
         # the product is deleted, bring it from the dead
         if variation_child.deleted:
@@ -72,6 +81,21 @@ def update_or_create_variation_product(shop: Shop, parent_product: Product, comb
         product=variation_child
     )[0]
     variation_shop_product.suppliers.set(parent_shop_product.suppliers.all())
+
+    # set the price
+    if combination_data.get("price"):
+        variation_shop_product.default_price_value = combination_data["price"]
+        variation_shop_product.save(update_fields=["default_price_value"])
+
+    # when there is no current supplier set, use the single supplier configured for the product, if any
+    if not supplier and parent_shop_product.suppliers.count() == 1:
+        supplier = parent_shop_product.suppliers.first()
+
+    # only update stocks when there is a single supplier
+    if supplier and combination_data.get("stock_count"):
+        new_stock_total = Decimal(combination_data["stock_count"])
+        current_stock_status = supplier.get_stock_status(variation_child.pk)
+        supplier.adjust_stock(variation_child.pk, new_stock_total - current_stock_status.logical_count)
 
     return (variation_child, variation_shop_product)
 

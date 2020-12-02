@@ -17,6 +17,7 @@ from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import DetailView
 from shuup.admin.shop_provider import get_shop
+from shuup.admin.supplier_provider import get_supplier
 from shuup.core.models import (
     Product, ProductVariationVariableValue, ShopProduct
 )
@@ -89,7 +90,8 @@ class ProductCombinationsView(DetailView):
             data=dict(combinations=combinations),
             context=dict(
                 product=instance,
-                shop=get_shop(request)
+                shop=get_shop(request),
+                supplier=get_supplier(request)
             )
         )
         if not serializer.is_valid():

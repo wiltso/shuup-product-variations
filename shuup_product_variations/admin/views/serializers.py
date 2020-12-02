@@ -40,18 +40,18 @@ class ProductCombinationSerializer(serializers.Serializer):
                     identifier=slugify(variable_name)
                 )
 
-            variable_value = ProductVariationVariableValue.objects.filter(
+            value = ProductVariationVariableValue.objects.filter(
                 variable=variable,
                 translations__value=variable_value
             ).first()
-            if not variable_value:
-                variable_value = ProductVariationVariableValue.objects.create(
+            if not value:
+                value = ProductVariationVariableValue.objects.create(
                     identifier=slugify(variable_value),
                     variable=variable,
                     value=variable_value
                 )
 
-            combination[variable] = variable_value
+            combination[variable] = value
 
         data["combination"] = combination
         return data
@@ -63,12 +63,18 @@ class ProductCombinationsSerializer(serializers.Serializer):
     def save(self):
         parent_product = self.context["product"]
         shop = self.context["shop"]
+        supplier = self.context["supplier"]
         variations = []
         variation_updater = cached_load("SHUUP_PRODUCT_VARIATIONS_VARIATION_UPDATER_SPEC")
 
         with atomic():
             for combination in self.validated_data["combinations"]:
-                variation_child, variation_child_shop_product = variation_updater(shop, parent_product, combination)
+                variation_child, variation_child_shop_product = variation_updater(
+                    shop,
+                    supplier,
+                    parent_product,
+                    combination
+                )
                 variations.append(variation_child)
 
         return variations
