@@ -9,7 +9,7 @@ import pytest
 from django.urls import reverse
 from django.test import Client
 from shuup.testing import factories
-from shuup.core.models import ShopProduct
+from shuup.core.models import ShopProduct, Product
 from decimal import Decimal
 
 
@@ -235,3 +235,48 @@ def test_error_handling(admin_user):
     result = response.json()
     assert result["error"] == "The SKU 'parent-sku' is already being used."
     assert result["code"] == "sku-exists"
+
+
+@pytest.mark.django_db
+def test_delete_recover_product_variation(admin_user):
+    """
+    Test that we can delete a variaiton and the recover it
+    """
+    shop = factories.get_default_shop()
+    supplier = factories.get_supplier("simple_supplier", shop)
+    product = factories.create_product("parent-sku", shop=shop, supplier=supplier)
+    shop_product = product.get_shop_instance(shop)
+    view_url = reverse("shuup_admin:shuup_product_variations.product.combinations", kwargs=dict(pk=shop_product.pk))
+
+    client = Client()
+    client.force_login(admin_user)
+    assert product.variation_children.count() == 0
+
+    create_payload = [
+        {
+            "combination": {"Color": "Red", "Size": "L"},
+            "sku": "red-l",
+        },
+        {
+            "combination": {"Color": "Red", "Size": "XL"},
+            "sku": "red-xl",
+        }
+    ]
+    response = client.post(view_url, data=create_payload, content_type="application/json")
+    assert response.status_code == 200
+    assert product.variation_children.count() == 2
+    assert Product.objects.count() == 3
+
+    delete_payload = [{"combination": {"Color": "Red", "Size": "L"}}]
+    response = client.delete(view_url, data=delete_payload, content_type="application/json")
+    assert response.status_code == 200
+    assert product.variation_children.count() == 1
+    assert Product.objects.filter(deleted=True).count() == 1
+    assert Product.objects.count() == 3
+
+    # create the variation again
+    response = client.post(view_url, data=create_payload, content_type="application/json")
+    assert response.status_code == 200
+    assert product.variation_children.count() == 2
+    assert Product.objects.count() == 3
+    assert Product.objects.filter(deleted=True).count() == 0

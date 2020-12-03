@@ -5,18 +5,13 @@
 #
 # This source code is licensed under the OSL-3.0 license found in the
 # LICENSE file in the root directory of this source tree.
-<<<<<<< HEAD
-=======
-from __future__ import unicode_literals
-
 from django.urls import reverse
->>>>>>> 75b6055... Tune UI and add option to update the children
 from django.utils.translation import ugettext as _
 from shuup.admin.base import Section
 from shuup.admin.shop_provider import get_shop
 from shuup.admin.supplier_provider import get_supplier
 from shuup.admin.utils.permissions import has_permission
-from shuup.core.models import Currency, ProductMode, Supplier
+from shuup.core.models import Currency, ProductMode
 from shuup.utils.djangoenv import has_installed
 
 

@@ -41,7 +41,7 @@ class ProductCombinationDeleteSerializer(serializers.Serializer):
                 ).first()
 
                 if not variable:
-                    raise serializers.ValidationError(_("Invalid variable '{var}'").format(var=variable_name))
+                    continue
 
                 value = ProductVariationVariableValue.objects.filter(
                     variable=variable,
@@ -49,12 +49,8 @@ class ProductCombinationDeleteSerializer(serializers.Serializer):
                 ).first()
 
                 if not value:
-                    raise serializers.ValidationError(
-                        _("Invalid value '{value}' for variable {var}").format(
-                            value=variable_value,
-                            var=variable_name
-                        )
-                    )
+                    continue
+
                 combination_set[variable] = value
 
             combination_hash = hash_combination(combination_set)
@@ -62,18 +58,13 @@ class ProductCombinationDeleteSerializer(serializers.Serializer):
                 product=parent_product,
                 combination_hash=combination_hash
             ).first()
-            if not variation_result:
-                raise serializers.ValidationError(_("Variation not found for the given combination."))
 
-            variation_product = variation_result.result
+            variation_product = variation_result.result if variation_result else None
         else:
             variation_product = Product.objects.filter(
                 sku=sku,
                 variation_parent=parent_product
             ).first()
-
-            if not variation_product:
-                raise serializers.ValidationError(_("Variation not found for the given SKU."))
 
         data["variation_product"] = variation_product
         return data
@@ -155,4 +146,5 @@ class ProductCombinationsDeleteSerializer(serializers.Serializer):
         with atomic():
             variation_updater = cached_load("SHUUP_PRODUCT_VARIATIONS_VARIATION_UPDATER_SPEC")()
             for combination in self.validated_data["combinations"]:
-                variation_updater.delete_variation(shop, supplier, parent_product, combination["variation_product"])
+                if combination["variation_product"]:
+                    variation_updater.delete_variation(shop, supplier, parent_product, combination["variation_product"])

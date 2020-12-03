@@ -11,7 +11,8 @@ from collections import defaultdict
 import six
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.db.models import OuterRef, Subquery
+from django.db.models import F, OuterRef, Subquery
+from django.db.transaction import atomic
 from django.http import JsonResponse
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
@@ -79,20 +80,24 @@ class ProductCombinationsView(DetailView):
             supplier.stock_managed
         )
 
-
         if stock_managed:
             from shuup.simple_supplier.models import StockCount
             product_data = ShopProduct.objects.filter(
                 product_id__in=product_ids
             ).annotate(
+                sku=F("product__sku"),
+                price=F("default_price_value"),
                 stock_count=Subquery(
                     StockCount.objects.filter(product_id=OuterRef("product_id")).values("logical_count")[:1]
-                )
-            ).values("pk", "product_id", "product__sku", "default_price_value", "stock_count")
+                ),
+            ).values("pk", "product_id", "sku", "price", "stock_count")
         else:
             product_data = ShopProduct.objects.filter(
                 product_id__in=product_ids
-            ).values("pk", "product_id", "product__sku", "default_price_value")
+            ).annotate(
+                sku=F("product__sku"),
+                price=F("default_price_value"),
+            ).values("pk", "product_id", "sku", "price")
 
         return JsonResponse({
             "combinations": combinations_data,
@@ -115,27 +120,29 @@ class ProductCombinationsView(DetailView):
                 "code": "invalid-content"
             }, status=400)
 
-        serializer = ProductCombinationsSerializer(
-            data=dict(combinations=combinations),
-            context=dict(
-                product=instance,
-                shop=get_shop(request),
-                supplier=get_supplier(request)
+        # use atomic here since the serializer can create the variation variables and values
+        with atomic():
+            serializer = ProductCombinationsSerializer(
+                data=dict(combinations=combinations),
+                context=dict(
+                    product=instance,
+                    shop=get_shop(request),
+                    supplier=get_supplier(request)
+                )
             )
-        )
-        if not serializer.is_valid():
-            return JsonResponse({
-                "error": serializer.errors,
-                "code": "validation-fail"
-            }, status=400)
+            if not serializer.is_valid():
+                return JsonResponse({
+                    "error": serializer.errors,
+                    "code": "validation-fail"
+                }, status=400)
 
-        try:
-            serializer.save()
-        except ValidationError as exc:
-            return JsonResponse({
-                "error": exc.message,
-                "code": exc.code
-            }, status=400)
+            try:
+                serializer.save()
+            except ValidationError as exc:
+                return JsonResponse({
+                    "error": exc.message,
+                    "code": exc.code
+                }, status=400)
 
         return JsonResponse({})
 
