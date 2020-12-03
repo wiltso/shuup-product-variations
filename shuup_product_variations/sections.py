@@ -5,8 +5,6 @@
 #
 # This source code is licensed under the OSL-3.0 license found in the
 # LICENSE file in the root directory of this source tree.
-from __future__ import unicode_literals
-
 from django.utils.translation import ugettext as _
 from shuup.admin.base import Section
 from shuup.admin.shop_provider import get_shop
@@ -31,8 +29,8 @@ class ProductVariationsSection(Section):
             return False
 
         supplier_count = Supplier.objects.filter(
-            shop_products__shop=request.shop,
-            shop_products__product_id=product.id
+            shop_products__shop=shop,
+            shop_products__product=product
         ).count()
         if supplier_count != 1:
             return False
@@ -54,7 +52,7 @@ class ProductVariationsSection(Section):
         return {
             "product_id": main_product.pk,
             "default_sku": main_product.sku,
-            "default_price": shop_product.default_price_value ,
+            "default_price": shop_product.default_price_value,
             "currency": currency.code,
             "currency_decimal_places": currency.decimal_places,
             "can_create": True,
