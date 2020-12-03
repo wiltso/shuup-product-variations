@@ -18,22 +18,21 @@ export const NewVariable = ({productData, onUpdate}) => {
     function updateSku(event) {
         const productData = { ...state.productData };
         productData["product__sku"] = event.target.value;
-        state.onUpdate(productData)
+        return state.onUpdate(productData)
     }
 
     function updateDefaultPrice(event) {
         const productData = { ...state.productData };
         productData["default_price_value"] = event.target.value;
-        state.onUpdate(productData)
+        return state.onUpdate(productData)
     }
 
     function updateStockCount(event) {
         const productData = { ...state.productData };
         productData["stock_count"] = event.target.value;
-        state.onUpdate(productData)
+        return state.onUpdate(productData)
     }
 
-    console.log(productData)
     return (
         <div className="d-flex flex-row flex-grow-1 align-items-end">
             <div className="d-flex flex-column flex-grow-1">

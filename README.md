@@ -17,25 +17,35 @@ See the LICENSE file distributed with Shuup.
 
 ## TODO
 
-- Add button under product variations to organize the current product variables (clean, order and translate)
-- Add admin view to organize all variations (clean, order and translate)
+### index.js
+  - create and delete combinations
+  - initialize new product data with proper values
+  - possibly update product data on updates
+  - do not include inventory in data if the supplier is not stockable
+  - for not stocked vendors should we give option to swithc?
+  - add tool to price all children with one run
+  - add tool to stock all children with one run
+  - set max variations to 4 more then let's discuss
 
-- Add product sku update
-- Add product default price update (regular and multivendor options)
-  - Check currency precision from currency
-  - Show currency on a field label
-- Add stock update.
-- Make sure stock update is only available when suplier is stocked
-- Add button to make supplier stocked
-- Limit things so that this is only available when there is one supplier per product
+### currentVariable.js
+  - update the product based on customer changes
+  - do not show inventory option if there is no inventory in data
+  - Add product default price update (regular and multivendor options)
+    - Check currency precision from currency
+    - Show currency on a field label
 
-- Add tool to price all children with one run
-- Add tool to stock all children with one run
+### productVariationOrganizer.js
+  - Actually re-order and translate (rename) the variations
 
-- [Biggest] add API to delete old variations and create new combinations
-    - Plan is to soft delete the product and then mark the variation result unvisible
-    - Also undelete if the combination comes available later day
+### admin
+  - add marketplace staff view to edit the "placeholder variations"
+  - make sure edit and create options can be switched with permissions
+  - limit the section until product created
+  - limit the section for products with exact one supplier
 
-- After this addon:
+
+### After this addon:
     - Remove variations from shuup.admin (pretty much done)
-    - Split product list to different menu items. Listing only normal products, variation parents, variation children, package products, subscriptions products. Then the current one lists "All products" but should be maybe available only for superusers in the future.
+    - Split product list to different menu items. Listing only normal products, variation parents,
+      variation children, package products, subscriptions products. Then the current one lists
+      "All products" but should be maybe available only for superusers in the future.

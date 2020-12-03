@@ -24,13 +24,16 @@ import {
 const App = () => {
     const [state, setState] = useState({
         
-        // Some data for handling things
+        // Some data for handling current state
         productIdToCombinationMap: {},
         productData: [],
-        newProductData: [],
         variationData: {},
         newVariationData: {},
         preSavedVariationsData: {},
+
+        // Pending data data that needs to be sent to server
+        newProductData: [],
+        productIdsToDelete: [],
 
         // three different modes
         loading: false,
@@ -38,6 +41,9 @@ const App = () => {
         organizing: false,
     });
 
+    /*
+        Initialize the state
+    */
     const fetchCombinations = async (url) => {
         try {
             const res = await fetch(url);
@@ -96,15 +102,60 @@ const App = () => {
         setState(prevState => { return { ...prevState, loading: true } })
         const variationURL = `/sa/shuup_product_variations/variations/`
         fetchVariations(variationURL)
-        const combinationURL = `/sa/shuup_product_variations/${window.SHUUP_PRODUCT_VARIATIONS_PRODUCT_ID}/combinations/` 
+        const combinationURL = `/sa/shuup_product_variations/${window.SHUUP_PRODUCT_VARIATIONS_DATA["product_id"]}/combinations/` 
         fetchCombinations(combinationURL);
     }, []);
 
+    /*
+        Help utils to get data that needs to be sent to server
+
+    */
+    const getMissingProductData = (variationData) => {
+        const newProductData = []
+        getCombinations(variationData, 0, [], {}).map((item, idx) => {
+            let productId = getProductIdForCombination(state.productIdToCombinationMap, item);
+            if (!productId) {
+                let newSKUCombinationPart = Object.keys(item).map(k => `${k}-${item[k]}`).join('-').toLowerCase().replace(" ", "-");
+                let newSKU = `${window.SHUUP_PRODUCT_VARIATIONS_DATA["default_sku"]}-${newSKUCombinationPart}`;
+                newProductData.push({
+                    "combination": item,
+                    "product__sku": newSKU,
+                    "default_price_value": window.SHUUP_PRODUCT_VARIATIONS_DATA["default_price"],
+                    "stock_count": 0
+                });
+            }
+        })
+        return newProductData;
+    }
+
+    const getProductIdsToDelete = (variationData, newVariationData) => {
+        const currentCombinations = getCombinations(variationData, 0, [], {})
+        const newCombinations = getCombinations(newVariationData, 0, [], {})
+        const productIdsToDelete = []
+        currentCombinations.filter((item) => {
+            let productId = getProductIdForCombination(state.productIdToCombinationMap, item);
+            if (productId && !isCombinationInCombinations(item, newCombinations)) {
+                productIdsToDelete.push(productId)
+                return item;
+            }
+        })
+        return productIdsToDelete;
+    }
+
+    /*
+        Help utils to update the current state based on customer variation updates
+    */
     const removeVariationSelect = (variable) => {
         const hasNewVariations = (Object.keys(state.newVariationData).length > 0);
-        const newVariationData = (hasNewVariations ? state.newVariationData : {...state.variationData});
+        let newVariationData = (hasNewVariations ? state.newVariationData : {...state.variationData});
         delete newVariationData[variable];
-        setState(prevState => { return { ...prevState, newVariationData } })
+        const newProductData = getMissingProductData(newVariationData);
+        const productIdsToDelete = getProductIdsToDelete(state.variationData, newVariationData);
+        if (newProductData.length === 0 && productIdsToDelete.length ===0) {
+            // Here we have special case when the newVariationsData should be reset
+            newVariationData = {};
+        }
+        return setState(prevState => { return { ...prevState, newVariationData, newProductData, productIdsToDelete } })
     }
 
     const addVariationSelectVariable = (selectedOption) => {
@@ -112,29 +163,50 @@ const App = () => {
         const newVariationData = (hasNewVariations ? state.newVariationData : {...state.variationData});
         const selectedValue = selectedOption.value;
         if (!Object.keys(newVariationData).includes(selectedValue)) {
-            newVariationData[selectedValue] = [];
-            setState(prevState => { return { ...prevState, newVariationData } })
+            newVariationData[selectedValue] = []; 
         }
+        return setState(prevState => { return { ...prevState, newVariationData } })
     }
 
     const updateVariationSelectValues = (variable, selectedOptions) => {
+        const selectedVariableValues = selectedOptions.map(item => {return item.value})
+        const hasNewVariations = (Object.keys(state.newVariationData).length > 0);
+        let newVariationData = (hasNewVariations ? state.newVariationData : {...state.variationData});
         if (variable) {
-            const selectedVariableValues = selectedOptions.map(item => {return item.value})
-            const hasNewVariations = (Object.keys(state.newVariationData).length > 0);
-            const newVariationData = (hasNewVariations ? state.newVariationData : {...state.variationData});
             newVariationData[variable] = selectedVariableValues;
-            const newProductData = []
-            getCombinations(newVariationData, 0, [], {}).map((item, idx) => {
-                let productId = getProductIdForCombination(state.productIdToCombinationMap, item);
-                if (!productId) {
-                    const newItem = {"combination": item, "product__sku": "123", "default_price_value": 0, "stock_count": 0}
-                    newProductData.push(newItem);
-                }
-            })
-            setState(prevState => { return { ...prevState, newVariationData, newProductData } })
         }
+        const newProductData = getMissingProductData(newVariationData)
+        const productIdsToDelete = getProductIdsToDelete(state.variationData, newVariationData);
+        if (newProductData.length === 0 && productIdsToDelete.length ===0) {
+            // Here we have special case when the newVariationsData should be reset
+            newVariationData = {}
+        }
+        return setState(prevState => { return { ...prevState, newVariationData, newProductData, productIdsToDelete } })
     }
 
+    /*
+        Send pending combinations to the application
+    */
+    const finalizePendingCombinations = () => {
+        console.log("finalizing combinations")
+        setState(prevState => { return { ...prevState, updating: true } })
+        const data = {
+            "new_combinations": state.newProductData,
+            "product_ids_to_delete": state.productIdsToDelete
+        }
+        console.log(data);
+        /*
+            Notes:
+              - Send combinations to server one by one but all the deletions on one try
+              - Updating should likely disable all components but somehow show the progress all the time
+              - I think when we are done here maybe we re-initialize the whole component and start the update process all over
+        */
+        return setState(prevState => { return { ...prevState, updating: false } })
+    }
+
+    /*
+        Rendering the view for current state
+    */
     if (state.loading) {
         return (
             <div className="flex-d flex-grow-1 text-center">
@@ -144,10 +216,17 @@ const App = () => {
             </div>
         );
     } else if (state.organizing) {
-        // Here let's update the variation order, re-name and translate (just for this product)
+        /*
+            Here user can update the variation order, re-name and translate variations
+            In most common situation this is already done by the marketplace admin
+
+            Notes:
+              - This will only change things for this product
+              - This only available when there isn't any unconfirmed combination changes
+        */
         return (
             <ProductVariationOrganizer
-                productId={window.SHUUP_PRODUCT_VARIATIONS_PRODUCT_ID}
+                productId={window.SHUUP_PRODUCT_VARIATIONS_DATA["product_id"]}
                 onQuit={
                     () => {
                         setState(prevState => { return { ...prevState, organizing: false } })
@@ -156,16 +235,64 @@ const App = () => {
             />    
         );
     } else {
-        // By default list all children and add option to update current children and variations
+        /*
+            List all combinations and allow user to update SKU, default price and inventory (optional)
+        
+            Notes:
+              - Inventory is only available for stocked vendors
+              - On top and bottom of combinations there is button for confirming combination changes
+                which are pending because of some variation changes.
+              - Customer has link to each combination to make further updates to the products sold
+        */
         const hasNewVariations = (Object.keys(state.newVariationData).length > 0);
         const variationData = (hasNewVariations ? state.newVariationData : state.variationData);
-        const hasNewVariationsMissingValues = Object.keys(variationData).find((variable) => {
+        const hasAnyVariationsMissingValues = Object.keys(variationData).find((variable) => {
             return (variationData[variable].length === 0 ? true : false)
         });
-        const SelectComponent = (window.SHUUP_PRODUCT_VARIATIONS_CAN_CREATE_VARIATIONS ? CreatableSelect : Select);
+        const SelectComponent = (window.SHUUP_PRODUCT_VARIATIONS_DATA["can_create"] ? CreatableSelect : Select);
         const variableOptions = Object.keys(state.preSavedVariationsData).filter((item) => {
             return !(Object.keys(variationData).includes(item));
         })
+
+        /*
+            Component for actions (shown on top and bottom of all product combinations)
+        */
+        const actionsComponent = (
+            hasNewVariations ? (
+                <div>
+                    <div className="d-flex flex-column m-3">
+                        <button
+                            className="btn btn-primary mb-4"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                finalizePendingCombinations();
+                            }}
+                        >
+                            { gettext("Confirm pending changes to combinations") }
+                        </button>
+                    </div>
+                    <div className="d-flex flex-column m-3">
+                        <button
+                            className="btn btn-primary btn-inverse mb-4"
+                            onClick={(e) => {
+                                return setState(prevState => { return { ...prevState, newVariationData: {} } })
+                            }}
+                        >
+                            { gettext("Cancel pending changes to combinations") }
+                        </button>
+                    </div>
+                </div>
+            ) : (
+                <div className="d-flex flex-column m-3">
+                    <button
+                        className="btn btn-primary mb-4"
+                        onClick={() => {setState(prevState => { return { ...prevState, organizing: true } })}}
+                    >
+                        { gettext("Organize current variations") }
+                    </button>
+                </div>
+            )
+        );
         return (
             <div>
                 <h3>{ gettext("Add variations") }</h3>
@@ -183,13 +310,13 @@ const App = () => {
                                         onChange={(values) => {
                                             updateVariationSelectValues(variable, values);
                                         }}
-                                        isDisabled={!window.SHUUP_PRODUCT_VARIATIONS_CAN_EDIT_VARIATIONS}
+                                        isDisabled={!window.SHUUP_PRODUCT_VARIATIONS_DATA["can_edit"]}
                                         value={values.map(item => {return {value: item, label: item}})}
                                         options={valueOptions.map(item => {return {value: item, label: item}})}
                                     />
                                 </div>
                                 {
-                                    window.SHUUP_PRODUCT_VARIATIONS_CAN_EDIT_VARIATIONS ? (
+                                    window.SHUUP_PRODUCT_VARIATIONS_DATA["can_edit"] ? (
                                         <div>
                                             <i
                                                 className="fa fa-trash fa-2x align-self-center ml-4"
@@ -207,7 +334,7 @@ const App = () => {
                     })
                 }
                 {
-                    window.SHUUP_PRODUCT_VARIATIONS_CAN_EDIT_VARIATIONS ? (
+                    window.SHUUP_PRODUCT_VARIATIONS_DATA["can_edit"] && !hasAnyVariationsMissingValues ? (
                         <div className="d-flex m-3" key={`pending-variations-new`}>
                             <SelectComponent
                                 className="flex-grow-1 mr-1"
@@ -225,53 +352,15 @@ const App = () => {
                     )
                 }
                 {
-                    false && hasNewVariationsMissingValues ? (
-                        <h3 className="mb-4">{ gettext("You have pending changes make sure all variables has values") }</h3> 
+                    hasAnyVariationsMissingValues ? (
+                        <h3 className="mb-4">{ gettext("Make sure all variables has at least one value selected.") }</h3> 
                     ) : (
                         <div>
-                            {
-                                hasNewVariations ? (
-                                    <div className="d-flex flex-column m-3">
-                                        <button
-                                            className="btn btn-primary mb-4"
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                console.log("ok lets create")
-                                                const currentCombinations = getCombinations(state.variationData, 0, [], {})
-                                                const newCombinations = getCombinations(state.newVariationData, 0, [], {})
-                                                const productIdsTodelete = []
-                                                currentCombinations.filter((item) => {
-                                                    let productId = getProductIdForCombination(state.productIdToCombinationMap, item);
-                                                    if (productId && !isCombinationInCombinations(item, newCombinations)) {
-                                                        productIdsTodelete.push(productId)
-                                                        return item;
-                                                    }
-                                                })
-                                                const data = {
-                                                    "new_combinations": state.newProductData,
-                                                    "product_ids_to_delete": productIdsTodelete
-                                                }
-                                                console.log(data);
-                                            }}
-                                        >
-                                            { gettext("Create new variations") }
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div className="d-flex flex-column m-3">
-                                        <button
-                                            className="btn btn-primary mb-4"
-                                            onClick={() => {setState(prevState => { return { ...prevState, organizing: true } })}}
-                                        >
-                                            { gettext("Organize current variations") }
-                                        </button>
-                                    </div>
-                                )
-                            }
+                            { actionsComponent }
                             {
                                 Object.keys(variationData).length > 0 ? (
                                     <div className="d-flex flex-column m-3">
-                                        <h3 className="mb-4">{ gettext("Combinations") }</h3>
+                                        <h3 className="mb-4">{ gettext("Product combinations") }</h3>
                                         {
                                             getCombinations(variationData, 0, [], {}).map((item, idx) => {
                                                 let combinationStr = Object.keys(item).map(k => `${k}: ${item[k]}`).join(', ');
@@ -310,45 +399,7 @@ const App = () => {
                                     null
                                 )
                             }
-                            {
-                                hasNewVariations ? (
-                                    <div className="d-flex flex-column m-3">
-                                        <button
-                                            className="btn btn-primary mb-4"
-                                            onClick={() => {
-                                                e.preventDefault();
-                                                console.log("ok lets create")
-                                                const currentCombinations = getCombinations(state.variationData, 0, [], {})
-                                                const newCombinations = getCombinations(state.newVariationData, 0, [], {})
-                                                const productIdsTodelete = []
-                                                currentCombinations.filter((item) => {
-                                                    let productId = getProductIdForCombination(state.productIdToCombinationMap, item);
-                                                    if (productId && !isCombinationInCombinations(item, newCombinations)) {
-                                                        productIdsTodelete.push(productId)
-                                                        return item;
-                                                    }
-                                                })
-                                                const data = {
-                                                    "new_combinations": state.newProductData,
-                                                    "product_ids_to_delete": productIdsTodelete
-                                                }
-                                                console.log(data);
-                                            }}
-                                        >
-                                            { gettext("Create new variations") }
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div className="d-flex flex-column m-3">
-                                        <button
-                                            className="btn btn-primary mb-4"
-                                            onClick={() => {setState(prevState => { return { ...prevState, organizing: true } })}}
-                                        >
-                                            { gettext("Organize current variations") }
-                                        </button>
-                                    </div>
-                                )
-                            }
+                            { actionsComponent }
                         </div>
                     )
                 }

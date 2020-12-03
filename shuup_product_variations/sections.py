@@ -9,12 +9,13 @@ from __future__ import unicode_literals
 
 from django.utils.translation import ugettext as _
 from shuup.admin.base import Section
-from shuup.core.models import ProductMode
+from shuup.admin.shop_provider import get_shop
+from shuup.core.models import Currency, ProductMode, Supplier
 
 
 class ProductVariationsSection(Section):
     identifier = "product_variations"
-    name = _("Product Variations")
+    name = _("Product variations")
     icon = "fa-cubes"
     template = "shuup_product_variations/product_variations.jinja"
     extra_js = "shuup_product_variations/product_variations_js.jinja"
@@ -22,6 +23,20 @@ class ProductVariationsSection(Section):
 
     @classmethod
     def visible_for_object(cls, product, request=None):
+        if not product.pk:
+            return False
+
+        shop = get_shop(request)
+        if not shop:
+            return False
+
+        supplier_count = Supplier.objects.filter(
+            shop_products__shop=request.shop,
+            shop_products__product_id=product.id
+        ).count()
+        if supplier_count != 1:
+            return False
+
         return (
             product.mode in [
                 ProductMode.VARIABLE_VARIATION_PARENT,
@@ -33,10 +48,16 @@ class ProductVariationsSection(Section):
     @classmethod
     def get_context_data(cls, product, request=None):
         main_product = (product.variation_parent if product.variation_parent else product)
+        shop = get_shop(request)
+        shop_product = main_product.get_shop_instance(shop)
+        currency = Currency.objects.filter(code=shop.currency).first()
         return {
-            "main_product": main_product,
-            "mode": main_product.mode,
-            "can_create": "true",
-            "can_edit": "true",
+            "product_id": main_product.pk,
+            "default_sku": main_product.sku,
+            "default_price": shop_product.default_price_value ,
+            "currency": currency.code,
+            "currency_decimal_places": currency.decimal_places,
+            "can_create": True,
+            "can_edit": True,
             "max_variations": 4
         }
