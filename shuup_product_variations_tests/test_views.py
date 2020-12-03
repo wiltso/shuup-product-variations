@@ -206,7 +206,26 @@ def test_error_handling(admin_user):
     assert result["code"] == "validation-fail"
     assert result["error"]["combinations"][0]['sku'][0] == "This field is required."
 
-    # create using existing SKU
+    # can't create using existing SKU
+    invalid_create_payload = [{
+        "combination": {"Color": "Red", "Size": "L"},
+        "sku": product.sku
+    }]
+    response = client.post(view_url, data=invalid_create_payload, content_type="application/json")
+    assert response.status_code == 400
+    result = response.json()
+    assert result["error"] == "The SKU 'parent-sku' is already being used."
+    assert result["code"] == "sku-exists"
+
+    # successfully create
+    invalid_create_payload = [{
+        "combination": {"Color": "Red", "Size": "L"},
+        "sku": "random"
+    }]
+    response = client.post(view_url, data=invalid_create_payload, content_type="application/json")
+    assert response.status_code == 200
+
+    # can't update using existing SKU
     invalid_create_payload = [{
         "combination": {"Color": "Red", "Size": "L"},
         "sku": product.sku
