@@ -10,8 +10,9 @@ from django.core.management import BaseCommand
 from django.utils.text import slugify
 from django.utils.translation import activate
 from shuup.core.models import ProductVariationVariableValue
-
-from shuup_product_variations.models import VariationVariable, VariationVariableValue
+from shuup_product_variations.models import (
+    VariationVariable, VariationVariableValue
+)
 
 
 class Command(BaseCommand):
