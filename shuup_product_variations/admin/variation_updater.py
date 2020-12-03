@@ -6,7 +6,7 @@
 # This source code is licensed under the OSL-3.0 license found in the
 # LICENSE file in the root directory of this source tree.
 from decimal import Decimal
-from typing import Dict, Optional
+from typing import Dict, NewType, Optional
 
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
@@ -17,90 +17,108 @@ from shuup.core.models import (
 )
 from shuup.core.models._product_variation import hash_combination
 
+Combination = NewType("Combination", Dict[ProductVariationVariable, ProductVariationVariableValue])
 
-def update_or_create_variation_product(shop: Shop,
-                                       supplier: Optional[Supplier],
-                                       parent_product: Product,
-                                       combination_data: Dict):
-    sku = combination_data["sku"]   # type: str
-    combination = combination_data["combination"]  # type: Dict[ProductVariationVariable, ProductVariationVariableValue]
-    combination_hash = hash_combination(combination)
 
-    # search the product by the combination hash
-    variation_result = ProductVariationResult.objects.filter(
-        product=parent_product,
-        combination_hash=combination_hash
-    ).first()
+class VariationUpdater():
+    def update_or_create_variation(self, shop: Shop, supplier: Optional[Supplier],
+                                   parent_product: Product, combination_data: Dict):
+        sku = combination_data["sku"]   # type: str
+        combination = combination_data["combination"]   # type: Combination
+        combination_hash = hash_combination(combination)
 
-    # there is already a variation value with a product set,
-    # use it and make sure the status is active
-    if variation_result:
-        variation_child = variation_result.result  # type: Product
+        # search the product by the combination hash
+        variation_result = ProductVariationResult.objects.filter(
+            product=parent_product,
+            combination_hash=combination_hash
+        ).first()
 
-        # validate whether the SKU is being used on a different product
-        sku_being_used = Product.objects.filter(sku=sku).exclude(pk=variation_child.pk).exists()
-        if sku_being_used:
-            raise ValidationError(_("The SKU '{sku}' is already being used.").format(sku=sku))
+        # there is already a variation value with a product set,
+        # use it and make sure the status is active
+        if variation_result:
+            variation_child = variation_result.result  # type: Product
 
-        # the result is not visible, make it visible
-        if variation_result.status != ProductVariationLinkStatus.VISIBLE:
-            variation_result.status = ProductVariationLinkStatus.VISIBLE
-            variation_result.save()
+            # validate whether the SKU is being used on a different product
+            sku_being_used = Product.objects.filter(sku=sku).exclude(pk=variation_child.pk).exists()
+            if sku_being_used:
+                raise ValidationError(
+                    _("The SKU '{sku}' is already being used.").format(sku=sku),
+                    code="sku-exists"
+                )
 
-        if variation_child.sku != sku:
-            variation_child.sku = sku
-            variation_child.save()
+            # the result is not visible, make it visible
+            if variation_result.status != ProductVariationLinkStatus.VISIBLE:
+                variation_result.status = ProductVariationLinkStatus.VISIBLE
+                variation_result.save()
 
-        # the product is deleted, bring it from the dead
-        if variation_child.deleted:
-            variation_child.deleted = False
-            variation_child.save()
+            if variation_child.sku != sku:
+                variation_child.sku = sku
+                variation_child.save()
 
+            # the product is deleted, bring it from the dead
+            if variation_child.deleted:
+                variation_child.deleted = False
+                variation_child.save()
+
+            variation_shop_product = ShopProduct.objects.get_or_create(
+                shop=shop,
+                product=variation_child
+            )[0]
+
+        else:
+            # validate whether the SKU is being used on a different product
+            sku_being_used = Product.objects.filter(sku=sku).exists()
+            if sku_being_used:
+                raise ValidationError(
+                    _("The SKU '{sku}' is already being used.").format(sku=sku),
+                    code="sku-exists"
+                )
+
+            # create a new variation child for the given combination
+            variation_child = create_variation_product(
+                shop=shop,
+                parent_product=parent_product,
+                sku=sku,
+                combination_hash=combination_hash
+            )
+
+        parent_shop_product = parent_product.get_shop_instance(shop)
         variation_shop_product = ShopProduct.objects.get_or_create(
             shop=shop,
             product=variation_child
         )[0]
+        variation_shop_product.suppliers.set(parent_shop_product.suppliers.all())
 
-    else:
-        # validate whether the SKU is being used on a different product
-        sku_being_used = Product.objects.filter(sku=sku).exists()
-        if sku_being_used:
-            raise ValidationError(_("The SKU '{sku}' is already being used.").format(sku=sku))
+        # set the price
+        if combination_data.get("price"):
+            variation_shop_product.default_price_value = combination_data["price"]
+            variation_shop_product.save(update_fields=["default_price_value"])
 
-        # create a new variation child for the given combination
-        variation_child = create_variation_product(
-            shop=shop,
-            parent_product=parent_product,
-            sku=sku,
-            combination_hash=combination_hash
-        )
+        # when there is no current supplier set, use the single supplier configured for the product, if any
+        if not supplier and parent_shop_product.suppliers.count() == 1:
+            supplier = parent_shop_product.suppliers.first()
 
-    parent_shop_product = parent_product.get_shop_instance(shop)
-    variation_shop_product = ShopProduct.objects.get_or_create(
-        shop=shop,
-        product=variation_child
-    )[0]
-    variation_shop_product.suppliers.set(parent_shop_product.suppliers.all())
+        # only update stocks when there is a single supplier
+        if supplier and combination_data.get("stock_count"):
+            new_stock_total = Decimal(combination_data["stock_count"])
+            current_stock_status = supplier.get_stock_status(variation_child.pk)
+            supplier.adjust_stock(variation_child.pk, new_stock_total - current_stock_status.logical_count)
 
-    # set the price
-    if combination_data.get("price"):
-        variation_shop_product.default_price_value = combination_data["price"]
-        variation_shop_product.save(update_fields=["default_price_value"])
+        return (variation_child, variation_shop_product)
 
-    # when there is no current supplier set, use the single supplier configured for the product, if any
-    if not supplier and parent_shop_product.suppliers.count() == 1:
-        supplier = parent_shop_product.suppliers.first()
+    def delete_variation(self, shop: Shop, supplier: Optional[Supplier],
+                         parent_product: Product, variation: Product):
 
-    # only update stocks when there is a single supplier
-    if supplier and combination_data.get("stock_count"):
-        new_stock_total = Decimal(combination_data["stock_count"])
-        current_stock_status = supplier.get_stock_status(variation_child.pk)
-        supplier.adjust_stock(variation_child.pk, new_stock_total - current_stock_status.logical_count)
-
-    return (variation_child, variation_shop_product)
+        variation.unlink_from_parent()
+        variation.soft_delete()
+        ProductVariationResult.objects.filter(
+            product=parent_product,
+            result=variation
+        ).delete()
 
 
-def create_variation_product(parent_product: Product, shop: Shop, sku: str, combination_hash: str) -> Product:
+def create_variation_product(parent_product: Product, shop: Shop,
+                             sku: str, combination_hash: str) -> Product:
     variation_child = Product(
         name=parent_product.name,
         tax_class=parent_product.tax_class,

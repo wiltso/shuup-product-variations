@@ -23,12 +23,22 @@ from shuup.core.models import (
 )
 from shuup.utils.djangoenv import has_installed
 from shuup_product_variations.admin.views.serializers import (
-    ProductCombinationsSerializer
+    ProductCombinationsDeleteSerializer, ProductCombinationsSerializer
 )
 
 
 class ProductCombinationsView(DetailView):
     model = Product
+
+    def get_queryset(self):
+        queryset = Product.objects.filter(
+            shop_products__shop=get_shop(self.request)
+        )
+        supplier = get_supplier(self.request)
+        if supplier:
+            queryset = queryset.filter(shop_products__suppliers=supplier)
+
+        return queryset.distinct()
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -87,6 +97,46 @@ class ProductCombinationsView(DetailView):
             }, status=400)
 
         serializer = ProductCombinationsSerializer(
+            data=dict(combinations=combinations),
+            context=dict(
+                product=instance,
+                shop=get_shop(request),
+                supplier=get_supplier(request)
+            )
+        )
+        if not serializer.is_valid():
+            return JsonResponse({
+                "error": serializer.errors,
+                "code": "validation-fail"
+            }, status=400)
+
+        try:
+            serializer.save()
+        except ValidationError as exc:
+            return JsonResponse({
+                "error": exc.message,
+                "code": exc.code
+            }, status=400)
+
+        return JsonResponse({})
+
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if not instance:
+            return JsonResponse({
+                "error": _("Product not found"),
+                "code": "product-not-found"
+            }, status=404)
+
+        try:
+            combinations = json.loads(request.body)
+        except (json.decoder.JSONDecodeError, TypeError):
+            return JsonResponse({
+                "error": _("Invalid content data"),
+                "code": "invalid-content"
+            }, status=400)
+
+        serializer = ProductCombinationsDeleteSerializer(
             data=dict(combinations=combinations),
             context=dict(
                 product=instance,

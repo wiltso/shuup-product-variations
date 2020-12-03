@@ -7,8 +7,9 @@
 # LICENSE file in the root directory of this source tree.
 
 
-#: Spec that defines the function to use while creating a variation for a parent product
+#: Spec that defines the object to use while
+#: creating and deleting variations for a parent product
 #:
 SHUUP_PRODUCT_VARIATIONS_VARIATION_UPDATER_SPEC = (
-    "shuup_product_variations.admin.variation_updater.update_or_create_variation_product"
+    "shuup_product_variations.admin.variation_updater.VariationUpdater"
 )
