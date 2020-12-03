@@ -101,9 +101,9 @@ const App = () => {
     useEffect(() => {
         console.log("fetching stuff")
         setState(prevState => { return { ...prevState, loading: true } })
-        const variationURL = `/sa/shuup_product_variations/variations/`
+        const variationURL = window.SHUUP_PRODUCT_VARIATIONS_DATA["product_variations_url"]
         fetchVariations(variationURL)
-        const combinationURL = `/sa/shuup_product_variations/${window.SHUUP_PRODUCT_VARIATIONS_DATA["product_id"]}/combinations/` 
+        const combinationURL = window.SHUUP_PRODUCT_VARIATIONS_DATA["combinations_url"]; 
         fetchCombinations(combinationURL);
     }, []);
 
@@ -112,7 +112,7 @@ const App = () => {
 
     */
     const getMissingProductData = (variationData) => {
-        const newProductData = []
+        const newProductData = [];
         getCombinations(variationData, 0, [], {}).map((item, idx) => {
             let productId = getProductIdForCombination(state.productIdToCombinationMap, item);
             if (!productId) {
@@ -132,7 +132,7 @@ const App = () => {
     const getProductIdsToDelete = (variationData, newVariationData) => {
         const currentCombinations = getCombinations(variationData, 0, [], {})
         const newCombinations = getCombinations(newVariationData, 0, [], {})
-        const productIdsToDelete = []
+        const productIdsToDelete = [];
         currentCombinations.filter((item) => {
             let productId = getProductIdForCombination(state.productIdToCombinationMap, item);
             if (productId && !isCombinationInCombinations(item, newCombinations)) {
@@ -147,12 +147,12 @@ const App = () => {
         Help utils to update the current state based on customer variation updates
     */
     const removeVariationSelect = (variable) => {
-        const hasNewVariations = (Object.keys(state.newVariationData).length > 0);
+        const hasNewVariations = (Object.keys(state.newVariationData).length > 0 || state.productIdsToDelete.length > 0);
         let newVariationData = (hasNewVariations ? state.newVariationData : {...state.variationData});
         delete newVariationData[variable];
         const newProductData = getMissingProductData(newVariationData);
         const productIdsToDelete = getProductIdsToDelete(state.variationData, newVariationData);
-        if (newProductData.length === 0 && productIdsToDelete.length ===0) {
+        if (productIdsToDelete.length === 0) {
             // Here we have special case when the newVariationsData should be reset
             newVariationData = {};
         }
@@ -160,7 +160,7 @@ const App = () => {
     }
 
     const addVariationSelectVariable = (selectedOption) => {
-        const hasNewVariations = (Object.keys(state.newVariationData).length > 0);
+        const hasNewVariations = (Object.keys(state.newVariationData).length > 0 || state.productIdsToDelete.length > 0);
         const newVariationData = (hasNewVariations ? state.newVariationData : {...state.variationData});
         const selectedValue = selectedOption.value;
         if (!Object.keys(newVariationData).includes(selectedValue)) {
@@ -171,14 +171,14 @@ const App = () => {
 
     const updateVariationSelectValues = (variable, selectedOptions) => {
         const selectedVariableValues = selectedOptions.map(item => {return item.value})
-        const hasNewVariations = (Object.keys(state.newVariationData).length > 0);
+        const hasNewVariations = (Object.keys(state.newVariationData).length > 0 || state.productIdsToDelete.length > 0);
         let newVariationData = (hasNewVariations ? state.newVariationData : {...state.variationData});
         if (variable) {
             newVariationData[variable] = selectedVariableValues;
         }
         const newProductData = getMissingProductData(newVariationData)
         const productIdsToDelete = getProductIdsToDelete(state.variationData, newVariationData);
-        if (newProductData.length === 0 && productIdsToDelete.length ===0) {
+        if (newProductData.length === 0 && productIdsToDelete.length === 0) {
             // Here we have special case when the newVariationsData should be reset
             newVariationData = {}
         }
@@ -245,11 +245,12 @@ const App = () => {
                 which are pending because of some variation changes.
               - Customer has link to each combination to make further updates to the products sold
         */
-        const hasNewVariations = (Object.keys(state.newVariationData).length > 0);
+        const hasNewVariations = (Object.keys(state.newVariationData).length > 0 || state.productIdsToDelete.length > 0);
         const variationData = (hasNewVariations ? state.newVariationData : state.variationData);
         const hasAnyVariationsMissingValues = Object.keys(variationData).find((variable) => {
             return (variationData[variable].length === 0 ? true : false)
         });
+        const maxVariablesReached = (Object.keys(variationData).length > (window.SHUUP_PRODUCT_VARIATIONS_DATA["max_variations"] - 1))
         const SelectComponent = (window.SHUUP_PRODUCT_VARIATIONS_DATA["can_create"] ? CreatableSelect : Select);
         const variableOptions = Object.keys(state.preSavedVariationsData).filter((item) => {
             return !(Object.keys(variationData).includes(item));
@@ -314,7 +315,7 @@ const App = () => {
                                         onChange={(values) => {
                                             updateVariationSelectValues(variable, values);
                                         }}
-                                        isDisabled={state.updating}
+                                        isDisabled={!window.SHUUP_PRODUCT_VARIATIONS_DATA["can_edit"] || state.updating}
                                         value={values.map(item => {return {value: item, label: item}})}
                                         options={valueOptions.map(item => {return {value: item, label: item}})}
                                     />
@@ -338,7 +339,7 @@ const App = () => {
                     })
                 }
                 {
-                    window.SHUUP_PRODUCT_VARIATIONS_DATA["can_edit"] && !hasAnyVariationsMissingValues ? (
+                    window.SHUUP_PRODUCT_VARIATIONS_DATA["can_edit"] && !hasAnyVariationsMissingValues && !maxVariablesReached ? (
                         <div className="d-flex m-3" key={`pending-variations-new`}>
                             <SelectComponent
                                 className="flex-grow-1 mr-1"
@@ -387,11 +388,12 @@ const App = () => {
                                                                 <CurrentVariable
                                                                     key={idx}
                                                                     productData={data}
+                                                                    combination={item}
                                                                     updating={state.updating}
                                                                     onSuccess={() => {
                                                                         console.log("lets refetch combinations")
                                                                         setState(prevState => { return { ...prevState, updating: true } })
-                                                                        const combinationURL = `/sa/shuup_product_variations/${window.SHUUP_PRODUCT_VARIATIONS_DATA["product_id"]}/combinations/` 
+                                                                        const combinationURL = window.SHUUP_PRODUCT_VARIATIONS_DATA["combinations_url"]; 
                                                                         fetchCombinations(combinationURL);
                                                                     }}
                                                                 />
@@ -416,7 +418,13 @@ const App = () => {
                                     null
                                 )
                             }
-                            { actionsComponent }
+                            {
+                                Object.keys(state.newVariationData).length > 0 ? (
+                                    actionsComponent
+                                ) : (
+                                    null
+                                )
+                            }
                         </div>
                     )
                 }

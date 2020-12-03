@@ -26,7 +26,6 @@ class VariationUpdater():
         sku = combination_data["sku"]   # type: str
         combination = combination_data["combination"]   # type: Combination
         combination_hash = hash_combination(combination)
-
         # search the product by the combination hash
         variation_result = ProductVariationResult.objects.filter(
             product=parent_product,

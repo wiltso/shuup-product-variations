@@ -43,7 +43,7 @@ export const ProductVariationOrganizer = ({
 
     useEffect(() => {
         setState(prevState => { return { ...prevState, loading: true } })
-        const variationURL = `/sa/shuup_product_variations/${productId}/product_variations/`
+        const variationURL = window.SHUUP_PRODUCT_VARIATIONS_DATA["variations_url"].replace("xxxx", productId);
         fetchVariations(variationURL)
     }, []);
 

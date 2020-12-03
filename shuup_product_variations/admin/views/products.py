@@ -61,7 +61,26 @@ class ProductCombinationsView(DetailView):
 
         shop_product = self.object.get_shop_instance(get_shop(request))
 
-        if has_installed("shuup.simple_supplier") and shop_product.suppliers.count() == 1:
+        supplier = get_supplier(request)
+        if not supplier:
+            supplier = shop_product.suppliers.first()
+
+        if not supplier:
+            return JsonResponse({
+                "combinations": [],
+                "product_data": []
+            })
+
+        is_simple_supplier_installed = has_installed("shuup.simple_supplier")
+
+        stock_managed = bool(
+            is_simple_supplier_installed and
+            supplier.module_identifier == "simple_supplier" and
+            supplier.stock_managed
+        )
+
+
+        if stock_managed:
             from shuup.simple_supplier.models import StockCount
             product_data = ShopProduct.objects.filter(
                 product_id__in=product_ids

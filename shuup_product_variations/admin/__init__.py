@@ -34,3 +34,6 @@ class ProductVariationsModule(AdminModule):
 
     def get_menu_entries(self, request):
         return []
+
+    def get_extra_permissions(self):
+        return ("shuup_product_variations.can_edit_variations", "shuup_product_variations_can_create_variations")

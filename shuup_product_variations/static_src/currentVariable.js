@@ -11,11 +11,11 @@ import axios from "axios";
 axios.defaults.xsrfHeaderName = "X-CSRFToken"
 axios.defaults.xsrfCookieName = "csrftoken"
 import {
-    ensureDecimalPlaces,
+    ensureDecimalPlaces, getNewDataForCombination,
 } from "./utils"
 
 
-export const CurrentVariable = ({productData, updating, onSuccess}) => {
+export const CurrentVariable = ({combination, productData, updating, onSuccess}) => {
     const [state, setState] = useState({
         // statuses for sku input
         updatingSKU: false,
@@ -50,7 +50,12 @@ export const CurrentVariable = ({productData, updating, onSuccess}) => {
 
     function changeDefaultPrice(event) {
         const productData = {...state.productData};
-        productData["default_price_value"] = ensureDecimalPlaces(event.target.value.replace(",", "."));
+        let newValue = event.target.value
+        if (newValue === "") {
+            newValue = "0";
+        }
+
+        productData["default_price_value"] = ensureDecimalPlaces(newValue.replace(",", "."));
         return setState(prevState => ({
             ...prevState,
             productData
@@ -59,7 +64,12 @@ export const CurrentVariable = ({productData, updating, onSuccess}) => {
 
     function changeStockCount(event) {
         const productData = {...state.productData};
-        productData["stock_count"] = event.target.value;
+        let newValue = event.target.value;
+        if (newValue === "") {
+            newValue = "0"
+        }
+
+        productData["stock_count"] = newValue;
         return setState(prevState => ({
             ...prevState,
             productData
@@ -67,9 +77,7 @@ export const CurrentVariable = ({productData, updating, onSuccess}) => {
     }
 
     useEffect(() => {
-        console.log(productData["default_price_value"])
-        const ensuredValue = ensureDecimalPlaces(productData["default_price_value"]);
-        console.log(ensuredValue);
+        const ensuredValue = ensureDecimalPlaces(productData["default_price_value"] || 0);
         if (productData["default_price_value"] != ensuredValue) {
             const productData = {...state.productData};
             productData["default_price_value"] = ensuredValue;
@@ -79,6 +87,19 @@ export const CurrentVariable = ({productData, updating, onSuccess}) => {
             }));
         }
     }, []);
+
+    function getURL() {
+        return `/sa/shuup_product_variations/${window.SHUUP_PRODUCT_VARIATIONS_DATA["product_id"]}/combinations/`;
+    }
+
+    function getData() {
+        return [{
+            combination,
+            "sku": state.productData["product__sku"],
+            "price": state.productData["default_price_value"],
+            "stock_count": state.productData["stock_count"]
+        }]
+    }
 
     /*
         update values to the backend application
@@ -90,23 +111,36 @@ export const CurrentVariable = ({productData, updating, onSuccess}) => {
           - on error show error help text and stop the update
     */
     function updateSKU() {
-        axios.post("/sa/", {"new_sku": state.productData["product__sku"]})
+        axios.post(getURL(), getData())
             .then((response) => {
-                console.log("updating sku")
-
                 onSuccess();
                 setState(prevState => ({
                     ...prevState,
                     updatingSKU: false,
-                    skuUpdateSuccess: true
+                    skuUpdateSuccess: true,
+                    defaultPriceUpdateSuccess: false,
+                    stockCountUpdateSuccess: false
                 }));
             })
-            .catch((response) => {
-                console.log("updating sku failed")
+            .catch((error) => {
+                let errorText = gettext("Updating SKU failed");
+                if (error.response && error.response.data && error.response.data.error) {
+                    errorText = error.response.data.error;
+                }
+
+                if (window._.isObject(errorText)) {
+                    if (errorText.combinations) {
+                        errorText = errorText.combinations[0].sku
+                    }
+                }
+
                 setState(prevState => ({
                     ...prevState,
                     updatingSKU: false,
-                    skuUpdateError: "error"
+                    skuUpdateSuccess: false,
+                    defaultPriceUpdateSuccess: false,
+                    stockCountUpdateSuccess: false,
+                    skuUpdateError: errorText
                 }));
             });
 
@@ -117,24 +151,36 @@ export const CurrentVariable = ({productData, updating, onSuccess}) => {
     }
 
     function updateDefaultPrice() {
-        axios.post("/sa/", {"new_price": state.productData["default_price_value"]})
+        axios.post(getURL(), getData())
             .then((response) => {
-                console.log(response)
-                console.log("updating price")
                 onSuccess();
                 setState(prevState => ({
                     ...prevState,
                     updatingDefaultPrice: false,
-                    defaultPriceUpdateSuccess: true
+                    skuUpdateSuccess: false,
+                    defaultPriceUpdateSuccess: true,
+                    stockCountUpdateSuccess:false
                 }));
             })
-            .catch((response) => {
-                console.log(response)
-                console.log("updating price failed")
+            .catch((error) => {
+                let errorText = gettext("Updating price failed");
+                if (error.response && error.response.data && error.response.data.error) {
+                    errorText = error.response.data.error;
+                }
+
+                if (window._.isObject(errorText)) {
+                    if (errorText.combinations) {
+                        errorText = errorText.combinations[0].price
+                    }
+                }
+
                 setState(prevState => ({
                     ...prevState,
                     updatingDefaultPrice: false,
-                    defaultPriceUpdateError: "error"
+                    skuUpdateSuccess: false,
+                    defaultPriceUpdateSuccess: false,
+                    stockCountUpdateSuccess: false,
+                    defaultPriceUpdateError: errorText
                 }));
             });
         return setState(prevState => ({
@@ -144,27 +190,38 @@ export const CurrentVariable = ({productData, updating, onSuccess}) => {
     }
 
     function updateStockCount() {
-        axios.post("/sa/", {"new_stock_count": state.productData["stock_count"]})
-        .then((response) => {
-            console.log(response)
-            console.log("updating stock")
+        axios.post(getURL(), getData())
+            .then((response) => {
+                onSuccess();
+                setState(prevState => ({
+                    ...prevState,
+                    updatingStockCount: false,
+                    skuUpdateSuccess: false,
+                    defaultPriceUpdateSuccess: false,
+                    stockCountUpdateSuccess: true
+                }));
+            })
+            .catch((error) => {
+                let errorText = gettext("Updating price failed");
+                if (error.response && error.response.data && error.response.data.error) {
+                    errorText = error.response.data.error;
+                }
 
-            onSuccess();
-            setState(prevState => ({
-                ...prevState,
-                updatingStockCount: false,
-                stockCountUpdateSuccess: true
-            }));
-        })
-        .catch((response) => {
-            console.log(response)
-            console.log("updating stock failed")
-            setState(prevState => ({
-                ...prevState,
-                updatingStockCount: false,
-                stockCountUpdateError: "error"
-            }));
-        });
+                if (window._.isObject(errorText)) {
+                    if (errorText.combinations) {
+                        errorText = errorText.combinations[0].stock_count
+                    }
+                }
+
+                setState(prevState => ({
+                    ...prevState,
+                    updatingStockCount: false,
+                    skuUpdateSuccess: false,
+                    defaultPriceUpdateSuccess: false,
+                    stockCountUpdateSuccess: false,
+                    stockCountUpdateError: errorText
+                }));
+            });
 
         return setState(prevState => ({
             ...prevState,
@@ -180,8 +237,7 @@ export const CurrentVariable = ({productData, updating, onSuccess}) => {
               do not jump when the updating starts
     */
     const disableInputs = (
-        updating || state.updatingSKU || state.updatingDefaultPrice || state.updatingStockCount ||
-        state.skuUpdateSuccess || state.defaultPriceUpdateSuccess || state.stockCountUpdateSuccess
+        updating || state.updatingSKU || state.updatingDefaultPrice || state.updatingStockCount
     );
     const updatingElement = (
         <small className="text-warning">{ gettext("Updating...") }</small>

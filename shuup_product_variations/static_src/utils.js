@@ -10,6 +10,10 @@ export function getCombinations(options, optionIndex, results, current) {
     var allKeys = Object.keys(options);
     var optionKey = allKeys[optionIndex];
     var vals = options[optionKey];
+    if (!vals) {
+        return results;
+    }
+
     for (var i = 0; i < vals.length; i++) {
         current[optionKey] = vals[i];
         if (optionIndex + 1 < allKeys.length) {

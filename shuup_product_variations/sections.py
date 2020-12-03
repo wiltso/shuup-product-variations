@@ -5,10 +5,19 @@
 #
 # This source code is licensed under the OSL-3.0 license found in the
 # LICENSE file in the root directory of this source tree.
+<<<<<<< HEAD
+=======
+from __future__ import unicode_literals
+
+from django.urls import reverse
+>>>>>>> 75b6055... Tune UI and add option to update the children
 from django.utils.translation import ugettext as _
 from shuup.admin.base import Section
 from shuup.admin.shop_provider import get_shop
+from shuup.admin.supplier_provider import get_supplier
+from shuup.admin.utils.permissions import has_permission
 from shuup.core.models import Currency, ProductMode, Supplier
+from shuup.utils.djangoenv import has_installed
 
 
 class ProductVariationsSection(Section):
@@ -28,11 +37,15 @@ class ProductVariationsSection(Section):
         if not shop:
             return False
 
-        supplier_count = Supplier.objects.filter(
-            shop_products__shop=shop,
-            shop_products__product=product
-        ).count()
-        if supplier_count != 1:
+        shop_product = product.get_shop_instance(shop)
+        supplier = get_supplier(request)
+        if not supplier:
+            supplier = shop_product.suppliers.first()
+
+        if not supplier:
+            return False
+
+        if shop_product.suppliers.count() != 1:
             return False
 
         return (
@@ -48,14 +61,42 @@ class ProductVariationsSection(Section):
         main_product = (product.variation_parent if product.variation_parent else product)
         shop = get_shop(request)
         shop_product = main_product.get_shop_instance(shop)
+        supplier = get_supplier(request)
+        if not supplier:
+            supplier = shop_product.suppliers.first()
+
+        is_simple_supplier_installed = has_installed("shuup.simple_supplier")
+
+        stock_managed = bool(
+            is_simple_supplier_installed and
+            supplier.module_identifier == "simple_supplier" and
+            supplier.stock_managed
+        )
+
         currency = Currency.objects.filter(code=shop.currency).first()
+
+        combinations_url = reverse(
+            "shuup_admin:shuup_product_variations.product.combinations",
+            kwargs={"pk": main_product.pk}
+        )
+        product_variations_url = reverse("shuup_admin:shuup_product_variations.variations.list")
+        variations_url = reverse(
+            "shuup_admin:shuup_product_variations.product.variations",
+            kwargs={"pk": 9999}
+        ).replace("9999", "xxxx")
+
         return {
             "product_id": main_product.pk,
             "default_sku": main_product.sku,
             "default_price": shop_product.default_price_value,
             "currency": currency.code,
             "currency_decimal_places": currency.decimal_places,
-            "can_create": True,
-            "can_edit": True,
-            "max_variations": 4
+            "can_create": has_permission(request.user, "shuup_product_variations_can_create_variations"),
+            "can_edit": has_permission(request.user, "shuup_product_variations.can_edit_variations"),
+            "max_variations": 5,
+            "stock_managed": stock_managed,
+            "is_simple_supplier_installed": is_simple_supplier_installed,
+            "combinations_url": combinations_url,
+            "product_variations_url": product_variations_url,
+            "variations_url": variations_url
         }
