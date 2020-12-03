@@ -18,11 +18,13 @@ See the LICENSE file distributed with Shuup.
 ## TODO
 
 ### index.js
-  - create and delete combinations
-  - initialize new product data with proper values
-  - possibly update product data on updates
+  - create and delete combinations (post)
+  - possibility update product data on updates (in progress)
+
   - do not include inventory in data if the supplier is not stockable
-  - for not stocked vendors should we give option to swithc?
+  - for not stocked vendors should we give option to switch?
+  - make products unstocked/stocked toggle
+
   - add tool to price all children with one run
   - add tool to stock all children with one run
   - set max variations to 4 more then let's discuss
@@ -43,9 +45,10 @@ See the LICENSE file distributed with Shuup.
   - limit the section until product created
   - limit the section for products with exact one supplier
 
+- Unhardcode URLs
 
 ### After this addon:
-    - Remove variations from shuup.admin (pretty much done)
-    - Split product list to different menu items. Listing only normal products, variation parents,
-      variation children, package products, subscriptions products. Then the current one lists
-      "All products" but should be maybe available only for superusers in the future.
+  - Remove variations from shuup.admin (pretty much done)
+  - Split product list to different menu items. Listing only normal products, variation parents,
+    variation children, package products, subscriptions products. Then the current one lists
+    "All products" but should be maybe available only for superusers in the future.

@@ -72,7 +72,8 @@ const App = () => {
                     productIdToCombinationMap,
                     productData,
                     variationData,
-                    loading: false
+                    loading: false,
+                    updating: false
                 }))
             }
         } catch {
@@ -257,42 +258,45 @@ const App = () => {
         /*
             Component for actions (shown on top and bottom of all product combinations)
         */
-        const actionsComponent = (
-            hasNewVariations ? (
-                <div>
+       let actionsComponent = null;
+        if (!state.updating) {
+            actionsComponent = (
+                hasNewVariations ? (
+                    <div>
+                        <div className="d-flex flex-column m-3">
+                            <button
+                                className="btn btn-primary mb-4"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    finalizePendingCombinations();
+                                }}
+                            >
+                                { gettext("Confirm pending changes to combinations") }
+                            </button>
+                        </div>
+                        <div className="d-flex flex-column m-3">
+                            <button
+                                className="btn btn-primary btn-inverse mb-4"
+                                onClick={(e) => {
+                                    return setState(prevState => { return { ...prevState, newVariationData: {} } })
+                                }}
+                            >
+                                { gettext("Cancel pending changes to combinations") }
+                            </button>
+                        </div>
+                    </div>
+                ) : (
                     <div className="d-flex flex-column m-3">
                         <button
                             className="btn btn-primary mb-4"
-                            onClick={(e) => {
-                                e.preventDefault();
-                                finalizePendingCombinations();
-                            }}
+                            onClick={() => {setState(prevState => { return { ...prevState, organizing: true } })}}
                         >
-                            { gettext("Confirm pending changes to combinations") }
+                            { gettext("Organize current variations") }
                         </button>
                     </div>
-                    <div className="d-flex flex-column m-3">
-                        <button
-                            className="btn btn-primary btn-inverse mb-4"
-                            onClick={(e) => {
-                                return setState(prevState => { return { ...prevState, newVariationData: {} } })
-                            }}
-                        >
-                            { gettext("Cancel pending changes to combinations") }
-                        </button>
-                    </div>
-                </div>
-            ) : (
-                <div className="d-flex flex-column m-3">
-                    <button
-                        className="btn btn-primary mb-4"
-                        onClick={() => {setState(prevState => { return { ...prevState, organizing: true } })}}
-                    >
-                        { gettext("Organize current variations") }
-                    </button>
-                </div>
-            )
-        );
+                )
+            );
+        }
         return (
             <div>
                 <h3>{ gettext("Add variations") }</h3>
@@ -310,7 +314,7 @@ const App = () => {
                                         onChange={(values) => {
                                             updateVariationSelectValues(variable, values);
                                         }}
-                                        isDisabled={!window.SHUUP_PRODUCT_VARIATIONS_DATA["can_edit"]}
+                                        isDisabled={state.updating}
                                         value={values.map(item => {return {value: item, label: item}})}
                                         options={valueOptions.map(item => {return {value: item, label: item}})}
                                     />
@@ -342,6 +346,7 @@ const App = () => {
                                 onChange={(newValue) => {
                                     addVariationSelectVariable(newValue);
                                 }}
+                                isDisabled={state.updating}
                                 value={null}
                                 defaultValue={[]}
                                 options={variableOptions.map(item => {return {value: item, label: item}})}
@@ -373,16 +378,28 @@ const App = () => {
                                                     data = getNewDataForCombination(state.newProductData, item)
                                                 }
                                                 const extraCSS = (idx % 2 ? "bg-light" : "");
+                                                console.log(data)
                                                 return (
                                                     <div className={`d-flex flex-column mb-3 ${extraCSS}`} key={`combination-${idx}`}>
                                                         <h4>{ combinationStr }</h4>
                                                         {
                                                             productId ? (
-                                                                <CurrentVariable key={idx} productData={data} />
+                                                                <CurrentVariable
+                                                                    key={idx}
+                                                                    productData={data}
+                                                                    updating={state.updating}
+                                                                    onSuccess={() => {
+                                                                        console.log("lets refetch combinations")
+                                                                        setState(prevState => { return { ...prevState, updating: true } })
+                                                                        const combinationURL = `/sa/shuup_product_variations/${window.SHUUP_PRODUCT_VARIATIONS_DATA["product_id"]}/combinations/` 
+                                                                        fetchCombinations(combinationURL);
+                                                                    }}
+                                                                />
                                                             ) : (
                                                                 <NewVariable
                                                                     key={idx}
                                                                     productData={data}
+                                                                    updating={state.updating}
                                                                     onUpdate={(newData) => {
                                                                         const newProductData = updateNewDataForCombination(state.newProductData, newData);
                                                                         return setState(prevState => { return { ...prevState, newProductData } })

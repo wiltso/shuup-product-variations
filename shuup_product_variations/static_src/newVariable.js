@@ -7,14 +7,21 @@
  * LICENSE file in the root directory of this source tree.
  */
 import React, { useEffect, useState } from "react";
+import {
+    ensureDecimalPlaces,
+} from "./utils"
 
 
-export const NewVariable = ({productData, onUpdate}) => {
+export const NewVariable = ({productData, updating, onUpdate}) => {
     const [state, setState] = useState({
         productData: productData,
         onUpdate: onUpdate
     });
 
+    /*
+        update skus through main state so the updated values are
+        there when the actual update is finalized for these new items
+    */
     function updateSku(event) {
         const productData = { ...state.productData };
         productData["product__sku"] = event.target.value;
@@ -23,7 +30,7 @@ export const NewVariable = ({productData, onUpdate}) => {
 
     function updateDefaultPrice(event) {
         const productData = { ...state.productData };
-        productData["default_price_value"] = event.target.value;
+        productData["default_price_value"] = ensureDecimalPlaces(event.target.value.replace(",", "."));
         return state.onUpdate(productData)
     }
 
@@ -33,6 +40,23 @@ export const NewVariable = ({productData, onUpdate}) => {
         return state.onUpdate(productData)
     }
 
+    useEffect(() => {
+        console.log(productData["default_price_value"])
+        const ensuredValue = ensureDecimalPlaces(productData["default_price_value"]);
+        console.log(ensuredValue);
+        if (productData["default_price_value"] != ensuredValue) {
+            const productData = { ...state.productData };
+            productData["default_price_value"] = ensuredValue;
+            onUpdate(productData)
+        }
+    }, []);
+
+    /*
+        render the actual row for this new item
+
+        Note:
+          - if main state is updating all these inputs shall be disabled
+    */
     return (
         <div className="d-flex flex-row flex-grow-1 align-items-end">
             <div className="d-flex flex-column flex-grow-1">
@@ -42,6 +66,7 @@ export const NewVariable = ({productData, onUpdate}) => {
                     className="form-control"
                     value={productData["product__sku"]}
                     onChange={updateSku}
+                    disabled={updating}
                 />
             </div>
             <div className="d-flex flex-column flex-grow-1 ml-1 mr-1">
@@ -51,6 +76,7 @@ export const NewVariable = ({productData, onUpdate}) => {
                     className="form-control"
                     value={productData["default_price_value"]}
                     onChange={updateDefaultPrice}
+                    disabled={updating}
                 />
             </div>
             {
@@ -62,17 +88,13 @@ export const NewVariable = ({productData, onUpdate}) => {
                             className="form-control"
                             value={productData["stock_count"]}
                             onChange={updateStockCount}
+                            disabled={updating}
                         />
                     </div>
                 ): (
                     null
                 )
-            }
-            <div className="d-flex align-items-end">
-                <a href={`/sa/products/${productData["pk"]}/#product-variations-section`}>
-                    <i className="fa fa-edit fa-2x align-self-center ml-4"></i>
-                </a>
-            </div>        
+            }   
         </div>
     )
 }

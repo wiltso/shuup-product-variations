@@ -54,3 +54,24 @@ export function isCombinationInCombinations(combination, combinations) {
         return window._.isEqual(combination, item);
     })
 }
+
+function countDecimals(value) {
+    if (value.toString().split(".").length < 2) {
+        return 0;
+    }
+    if (Math.floor(value) === value) {
+        return 0;
+    }
+    return value.toString().split(".")[1].length || 0; 
+}
+
+function round(value, decimal_places) {
+    return Number(value).toFixed(decimal_places)
+}
+
+export function ensureDecimalPlaces(value) {
+    if (countDecimals(value) > window.SHUUP_PRODUCT_VARIATIONS_DATA.currency_decimal_places) {
+        return round(value, window.SHUUP_PRODUCT_VARIATIONS_DATA.currency_decimal_places)
+    }
+    return value
+}
