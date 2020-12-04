@@ -21,16 +21,22 @@ Combination = NewType("Combination", Dict[ProductVariationVariable, ProductVaria
 
 
 class VariationUpdater():
-    def update_or_create_variation(self, shop: Shop, supplier: Optional[Supplier],
+    def update_or_create_variation(self, shop: Shop, supplier: Optional[Supplier],  # noqa (C901)
                                    parent_product: Product, combination_data: Dict):
         sku = combination_data["sku"]   # type: str
         combination = combination_data["combination"]   # type: Combination
         combination_hash = hash_combination(combination)
+
         # search the product by the combination hash
         variation_result = ProductVariationResult.objects.filter(
             product=parent_product,
             combination_hash=combination_hash
         ).first()
+
+        parent_shop_product = parent_product.get_shop_instance(shop)
+        # when there is no current supplier set, use the single supplier configured for the product, if any
+        if not supplier and parent_shop_product.suppliers.count() == 1:
+            supplier = parent_shop_product.suppliers.first()
 
         # there is already a variation value with a product set,
         # use it and make sure the status is active
@@ -59,29 +65,44 @@ class VariationUpdater():
                 variation_child.deleted = False
                 variation_child.save()
 
-            variation_shop_product = ShopProduct.objects.get_or_create(
-                shop=shop,
-                product=variation_child
-            )[0]
-
         else:
             # validate whether the SKU is being used on a different product
-            sku_being_used = Product.objects.filter(sku=sku).exists()
-            if sku_being_used:
-                raise ValidationError(
-                    _("The SKU '{sku}' is already being used.").format(sku=sku),
-                    code="sku-exists"
+            existing_product = Product.objects.filter(sku=sku).first()
+            variation_child = None
+
+            if existing_product:
+                # this product is not deleted, raise an error
+                if not existing_product.deleted:
+                    raise ValidationError(
+                        _("The SKU '{sku}' is already being used.").format(sku=sku),
+                        code="sku-exists"
+                    )
+
+                # the product is deleted, let's recover it
+                # but make sure we have a supplier set for it that match the parent product
+                # OR the product doesn't have a ShopProduct attached
+                variation_shop_product = ShopProduct.objects.filter(
+                    product=existing_product,
+                    shop=shop
+                ).first()
+                if (not variation_shop_product
+                        or (supplier and variation_shop_product.suppliers.filter(pk=supplier.pk).exists())):
+                    variation_child = recover_deleted_product(
+                        shop=shop,
+                        parent_product=parent_product,
+                        deleted_product=existing_product,
+                        combination_hash=combination_hash
+                    )
+
+            if not variation_child:
+                # create a new variation child for the given combination
+                variation_child = create_variation_product(
+                    shop=shop,
+                    parent_product=parent_product,
+                    sku=sku,
+                    combination_hash=combination_hash
                 )
 
-            # create a new variation child for the given combination
-            variation_child = create_variation_product(
-                shop=shop,
-                parent_product=parent_product,
-                sku=sku,
-                combination_hash=combination_hash
-            )
-
-        parent_shop_product = parent_product.get_shop_instance(shop)
         variation_shop_product = ShopProduct.objects.get_or_create(
             shop=shop,
             product=variation_child
@@ -92,10 +113,6 @@ class VariationUpdater():
         if combination_data.get("price"):
             variation_shop_product.default_price_value = combination_data["price"]
             variation_shop_product.save(update_fields=["default_price_value"])
-
-        # when there is no current supplier set, use the single supplier configured for the product, if any
-        if not supplier and parent_shop_product.suppliers.count() == 1:
-            supplier = parent_shop_product.suppliers.first()
 
         # only update stocks when there is a single supplier
         if supplier and combination_data.get("stock_count"):
@@ -114,6 +131,24 @@ class VariationUpdater():
             product=parent_product,
             result=variation
         ).delete()
+
+
+def recover_deleted_product(parent_product: Product, shop: Shop,
+                            deleted_product: Product, combination_hash: str) -> Product:
+    deleted_product.name = parent_product.name
+    deleted_product.tax_class = parent_product.tax_class
+    deleted_product.sales_unit = parent_product.sales_unit
+    deleted_product.shipping_mode = parent_product.shipping_mode
+    deleted_product.type = parent_product.type
+    deleted_product.manufacturer = parent_product.manufacturer
+    deleted_product.height = parent_product.height
+    deleted_product.depth = parent_product.depth
+    deleted_product.net_weight = parent_product.net_weight
+    deleted_product.gross_weight = parent_product.gross_weight
+    deleted_product.deleted = False
+    deleted_product.save()
+    deleted_product.link_to_parent(parent_product, combination_hash=combination_hash)
+    return deleted_product
 
 
 def create_variation_product(parent_product: Product, shop: Shop,

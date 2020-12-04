@@ -1,0 +1,96 @@
+/**
+ * This file is part of Shuup.
+ *
+ * Copyright (c) 2012-2020, Shoop Commerce Ltd. All rights reserved.
+ *
+ * This source code is licensed under the OSL-3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+import React, { useEffect, useState } from 'react';
+import {
+  ensureDecimalPlaces,
+} from './utils';
+
+const NewVariable = ({ productData, updating, onUpdate }) => {
+  const [state, setState] = useState({
+    productData: productData || {},
+    onUpdate,
+  });
+
+  /*
+        update skus through main state so the updated values are
+        there when the actual update is finalized for these new items
+    */
+  function updateSku(event) {
+    const newData = { ...state.productData };
+    newData.sku = event.target.value;
+    return state.onUpdate(newData);
+  }
+
+  function updateDefaultPrice(event) {
+    const newData = { ...state.productData };
+    newData.price = ensureDecimalPlaces(event.target.value.replace(',', '.'));
+    return state.onUpdate(newData);
+  }
+
+  function updateStockCount(event) {
+    const newData = { ...state.productData };
+    newData.stock_count = event.target.value;
+    return state.onUpdate(newData);
+  }
+
+  useEffect(() => {
+    if (state.productData.price) {
+      const ensuredValue = ensureDecimalPlaces(state.productData.price);
+      if (productData.price !== ensuredValue) {
+        const newData = { ...state.productData };
+        newData.price = ensuredValue;
+        onUpdate(newData);
+      }
+    }
+  }, []);
+
+  /*
+    render the actual row for this new item
+
+    Note:
+      - if main state is updating all these inputs shall be disabled
+    */
+  return (
+    <div className="d-flex flex-row flex-grow-1 align-items-end">
+      <div className="d-flex flex-column flex-grow-1">
+        <small>{ gettext('SKU') }</small>
+        <input
+          type="text"
+          className="form-control"
+          value={state.productData.sku}
+          onChange={updateSku}
+          disabled={updating}
+        />
+      </div>
+      <div className="d-flex flex-column flex-grow-1 ml-1 mr-1">
+        <small>{ gettext('Default Price') }</small>
+        <input
+          type="text"
+          className="form-control"
+          value={state.productData.price}
+          onChange={updateDefaultPrice}
+          disabled={updating}
+        />
+      </div>
+      {state.productData.stock_count !== undefined && (
+        <div className="d-flex flex-column flex-grow-1">
+          <small>{ gettext('Inventory') }</small>
+          <input
+            type="text"
+            className="form-control"
+            value={state.productData.stock_count}
+            onChange={updateStockCount}
+            disabled={updating}
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+export default NewVariable;
