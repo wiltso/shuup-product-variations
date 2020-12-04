@@ -200,9 +200,8 @@ const App = () => {
   };
 
   const createCombinations = (combinations) => {
-    const parentProductId = window.SHUUP_PRODUCT_VARIATIONS_DATA.product_id;
     return Client.request({
-      url: `/sa/shuup_product_variations/${parentProductId}/combinations/`,
+      url: window.SHUUP_PRODUCT_VARIATIONS_DATA.combinations_url,
       method: 'POST',
       data: combinations,
     });
@@ -235,13 +234,9 @@ const App = () => {
       createProgress: 0,
     }));
 
-    const parentProductId = window.SHUUP_PRODUCT_VARIATIONS_DATA.product_id;
-
     const stopUpdate = () => {
-      setState((prevState) => ({
-        ...prevState,
-        updating: false,
-      }));
+      const combinationURL = window.SHUUP_PRODUCT_VARIATIONS_DATA.combinations_url;
+      fetchCombinations(combinationURL);
     };
 
     // Delete old combinations
@@ -249,7 +244,7 @@ const App = () => {
       const deletePayload = state.combinationsToDelete.map((comb) => ({ combination: comb }));
       try {
         const response = await Client.request({
-          url: `/sa/shuup_product_variations/${parentProductId}/combinations/`,
+          url: window.SHUUP_PRODUCT_VARIATIONS_DATA.combinations_url,
           method: 'DELETE',
           data: deletePayload,
         });
@@ -281,6 +276,7 @@ const App = () => {
           text: gettext('Combinations created.'),
           tags: 'success',
         });
+        setState((prevState) => ({...prevState, newVariationData: {}, newProductData: [], combinationsToDelete: []}));
         stopUpdate();
       }).catch(() => {
         window.Messages.enqueue({
@@ -290,6 +286,7 @@ const App = () => {
         stopUpdate();
       });
     } else {
+      setState((prevState) => ({...prevState, newVariationData: {}, newProductData: [], combinationsToDelete: []}));
       stopUpdate();
     }
   };
@@ -459,7 +456,7 @@ const App = () => {
                     <h4>{ combinationStr }</h4>
                     {productId ? (
                       <CurrentVariable
-                        key={idx}
+                        key={combinationStr}
                         productData={data}
                         combination={item}
                         updating={state.updating}
@@ -471,7 +468,7 @@ const App = () => {
                       />
                     ) : (
                       <NewVariable
-                        key={idx}
+                        key={combinationStr}
                         productData={data}
                         updating={state.updating}
                         onUpdate={(newData) => {

@@ -86,14 +86,14 @@ const CurrentVariable = ({
   }, []);
 
   function getURL() {
-    return `/sa/shuup_product_variations/${window.SHUUP_PRODUCT_VARIATIONS_DATA.product_id}/combinations/`;
+    return window.SHUUP_PRODUCT_VARIATIONS_DATA.combinations_url;
   }
 
   function getData() {
     return [{
       combination,
-      sku: state.productData.product__sku,
-      price: state.productData.default_price_value,
+      sku: state.productData.sku,
+      price: state.productData.price,
       stock_count: state.productData.stock_count,
     }];
   }

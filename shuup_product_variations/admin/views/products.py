@@ -49,6 +49,9 @@ class ProductCombinationsView(DetailView):
 
         for combination in self.object.get_all_available_combinations():
             product_id = combination["result_product_pk"]
+            if not product_id:
+                continue
+
             product_ids.add(product_id)
             combinations_data.append({
                 "product": product_id,
