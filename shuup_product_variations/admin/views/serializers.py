@@ -8,6 +8,7 @@
 from django.db.transaction import atomic
 from django.utils.text import slugify
 from django.utils.translation import ugettext_lazy as _
+from parler.utils.context import switch_language
 from rest_framework import serializers
 from shuup.core.models import (
     Product, ProductVariationResult, ProductVariationVariable,
@@ -148,3 +149,24 @@ class ProductCombinationsDeleteSerializer(serializers.Serializer):
             for combination in self.validated_data["combinations"]:
                 if combination["variation_product"]:
                     variation_updater.delete_variation(shop, supplier, parent_product, combination["variation_product"])
+
+
+class OrderingSerializer(serializers.Serializer):
+    ordering = serializers.IntegerField()
+
+    def save(self):
+        item = self.context["item"]
+        item.ordering = self.validated_data["ordering"]
+        item.save()
+        return item
+
+
+class TranslationSerializer(serializers.Serializer):
+    language_code = serializers.CharField()
+    name = serializers.CharField()
+
+    def save(self):
+        item = self.context["item"]
+        with switch_language(item, self.validated_data["language_code"]):
+            item.name = self.validated_data["name"]
+        return item

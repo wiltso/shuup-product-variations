@@ -20,11 +20,13 @@ from django.views.generic import DetailView
 from shuup.admin.shop_provider import get_shop
 from shuup.admin.supplier_provider import get_supplier
 from shuup.core.models import (
-    Product, ProductVariationVariableValue, ShopProduct
+    Product, ProductVariationVariable,
+    ProductVariationVariableValue, ShopProduct
 )
 from shuup.utils.djangoenv import has_installed
 from shuup_product_variations.admin.views.serializers import (
-    ProductCombinationsDeleteSerializer, ProductCombinationsSerializer
+    OrderingSerializer, ProductCombinationsDeleteSerializer,
+    ProductCombinationsSerializer, TranslationSerializer
 )
 
 
@@ -188,35 +190,3 @@ class ProductCombinationsView(DetailView):
             }, status=400)
 
         return JsonResponse({})
-
-
-class ProductVariationsView(DetailView):
-    model = Product
-
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        variables_id_to_name = {}
-        values_data = defaultdict(list)
-
-        for variable_id, variable_name, variable_order, value_id, value_order, value_name in (
-            ProductVariationVariableValue.objects
-                .language(settings.PARLER_DEFAULT_LANGUAGE_CODE)
-                .filter(variable__product_id=self.object.id)
-                .values_list(
-                    "pk",
-                    "ordering",
-                    "variable_id",
-                    "variable__ordering",
-                    "translations__value",
-                    "variable__translations__name"
-                )
-        ):
-            variables_id_to_name[variable_id] = {"name": variable_order, "order": variable_name}
-            values_data[variable_id].append({
-                "id": value_id, "order": value_order, "name":  value_name
-            })
-
-        return JsonResponse({
-            "variables": variables_id_to_name,
-            "values": values_data
-        })

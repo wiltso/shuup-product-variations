@@ -79,6 +79,14 @@ class ProductVariationsSection(Section):
             "shuup_admin:shuup_product_variations.product.variations",
             kwargs={"pk": 9999}
         ).replace("9999", "xxxx")
+        variable_url = reverse(
+            "shuup_admin:shuup_product_variations.product.variations_variable",
+            kwargs={"pk": 9999}
+        ).replace("9999", "xxxx")
+        variable_value_url = reverse(
+            "shuup_admin:shuup_product_variations.product.variations_variable_value",
+            kwargs={"pk": 9999}
+        ).replace("9999", "xxxx")
 
         return {
             "product_id": main_product.pk,
@@ -93,5 +101,7 @@ class ProductVariationsSection(Section):
             "is_simple_supplier_installed": is_simple_supplier_installed,
             "combinations_url": combinations_url,
             "product_variations_url": product_variations_url,
-            "variations_url": variations_url
+            "variations_url": variations_url,
+            "variable_url": variable_url,
+            "variable_value_url":variable_value_url
         }

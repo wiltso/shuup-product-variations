@@ -22,8 +22,18 @@ class ProductVariationsModule(AdminModule):
             ),
             admin_url(
                 r"^shuup_product_variations/(?P<pk>\d+)/product_variations/$",
-                "shuup_product_variations.admin.views.products.ProductVariationsView",
+                "shuup_product_variations.admin.views.product_variations.ProductVariationsView",
                 name="shuup_product_variations.product.variations"
+            ),
+            admin_url(
+                r"^shuup_product_variations/(?P<pk>\d+)/product_variations_variable/$",
+                "shuup_product_variations.admin.views.product_variations.ProductVariationVariableDetailView",
+                name="shuup_product_variations.product.variations_variable"
+            ),
+            admin_url(
+                r"^shuup_product_variations/(?P<pk>\d+)/product_variations_variable_value/$",
+                "shuup_product_variations.admin.views.product_variations.ProductVariationVariableValueDetailView",
+                name="shuup_product_variations.product.variations_variable_value"
             ),
             admin_url(
                 r"^shuup_product_variations/variations/$",
