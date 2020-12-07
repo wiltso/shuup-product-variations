@@ -22,6 +22,96 @@ import {
 } from './utils';
 import Client from './Client';
 
+class CombinationOperationError extends Error {
+  constructor(message, errors) {
+    super(message);
+    this.errors = errors;
+  }
+}
+
+const deleteAllCombinations = (combinations) => (
+  Client.request({
+    url: window.SHUUP_PRODUCT_VARIATIONS_DATA.combinations_url,
+    method: 'DELETE',
+    data: combinations,
+  }).then((response) => {
+    if (response.status === 200) {
+      return Promise.resolve();
+    }
+    // TODO: get the errors
+    const errors = [];
+    return Promise.reject(
+      new CombinationOperationError(gettext('Failed to delete combinations'), errors),
+    );
+  })
+);
+
+const createCombinations = (combinations) => Client.request({
+  url: window.SHUUP_PRODUCT_VARIATIONS_DATA.combinations_url,
+  method: 'POST',
+  data: combinations,
+});
+
+const CombinationsCreator = {
+  createNextCombination(onFinish) {
+    const that = this;
+    if (this.combinationQueue.length === 0) {
+      onFinish();
+    } else {
+      const combination = this.combinationQueue.pop();
+      that.currentIndex += 1;
+      that.onUpdateProgress((that.currentIndex / this.totalToProcess) * 100.0);
+
+      createCombinations([combination]).then(() => {
+        that.createNextCombination(onFinish);
+      }).catch((error) => {
+        that.errors.push(error);
+        that.createNextCombination(onFinish);
+      });
+    }
+  },
+
+  create(combinations, onUpdateProgress) {
+    this.totalToProcess = combinations.length;
+    this.errors = [];
+    this.currentIndex = 0;
+    this.onUpdateProgress = onUpdateProgress;
+    this.combinationQueue = [...combinations];
+
+    return new Promise((resolve, reject) => {
+      this.createNextCombination(() => {
+        if (this.errors) {
+          reject(new CombinationOperationError(gettext('Failed to delete combinations'), this.errors));
+        } else {
+          resolve();
+        }
+      });
+    });
+  },
+};
+
+const createAllCombinations = async (combinations, onUpdateProgress) => {
+  // when we have more than 20 combinations, let's create them one by one
+  onUpdateProgress(0); // 0%
+
+  if (combinations.length > 20) {
+    await CombinationsCreator.create(combinations, onUpdateProgress);
+  } else {
+    try {
+      await createCombinations(combinations);
+      onUpdateProgress(100); // 100%
+    } catch (error) {
+      // TODO: get all errors
+      const errors = [error];
+      throw new CombinationOperationError(gettext('Failed to delete combinations'), errors);
+    }
+  }
+};
+
+const getCombinationString = (combination) => (
+  Object.keys(combination).map((k) => `${k}: ${combination[k]}`).join(', ')
+);
+
 const App = () => {
   const [state, setState] = useState({
 
@@ -45,8 +135,8 @@ const App = () => {
   });
 
   /*
-        Initialize the state
-    */
+    Initialize the state
+  */
   const fetchCombinations = async (url) => {
     try {
       const res = await fetch(url);
@@ -78,6 +168,7 @@ const App = () => {
           variationData,
           loading: false,
           updating: false,
+          createProgress: 0,
         }));
       }
     } catch {
@@ -199,31 +290,6 @@ const App = () => {
     }));
   };
 
-  const createCombinations = (combinations) => {
-    return Client.request({
-      url: window.SHUUP_PRODUCT_VARIATIONS_DATA.combinations_url,
-      method: 'POST',
-      data: combinations,
-    });
-  };
-
-  const createAllCombinations = (combinations) => (
-    // when we have more than 30 combinations, let's create them one by one
-    new Promise((resolve, reject) => {
-      if (combinations.length > 30) {
-        combinations.forEach(async (combination) => {
-          try {
-            await createCombinations([combination]);
-          } catch (error) {
-
-          }
-        });
-      } else {
-        resolve(createCombinations(combinations));
-      }
-    })
-  );
-
   /*
       Send pending combinations to the application
   */
@@ -241,59 +307,58 @@ const App = () => {
 
     // Delete old combinations
     if (state.combinationsToDelete.length) {
-      const deletePayload = state.combinationsToDelete.map((comb) => ({ combination: comb }));
+      const deleteCombinations = state.combinationsToDelete.map((comb) => ({ combination: comb }));
       try {
-        const response = await Client.request({
-          url: window.SHUUP_PRODUCT_VARIATIONS_DATA.combinations_url,
-          method: 'DELETE',
-          data: deletePayload,
-        });
-        if (response.status === 200) {
-          window.Messages.enqueue({
-            text: gettext('Old combinations deleted.'),
-            tags: 'success',
-          });
-        } else {
-          window.Messages.enqueue({
-            text: gettext('Failed to delete old combinations'),
-            tags: 'error',
-          });
-          stopUpdate();
-          return;
-        }
+        await deleteAllCombinations(deleteCombinations);
       } catch (error) {
-        window.Messages.enqueue({
-          text: gettext('Failed to delete old combinations'),
-          tags: 'error',
-        });
+        if (error instanceof CombinationOperationError) {
+          window.Messages.enqueue({ text: error.message, tags: 'error' });
+          // TODO: handle
+          console.log(error.errors);
+        } else {
+          console.error(error);
+        }
         stopUpdate();
         return;
       }
     }
+
     if (state.newProductData) {
-      createAllCombinations(state.newProductData).then(() => {
+      try {
+        await createAllCombinations(state.newProductData, (progress) => {
+          setState((prevState) => ({
+            ...prevState,
+            createProgress: progress,
+          }));
+        });
         window.Messages.enqueue({
           text: gettext('Combinations created.'),
           tags: 'success',
         });
-        setState((prevState) => ({...prevState, newVariationData: {}, newProductData: [], combinationsToDelete: []}));
+      } catch (error) {
+        if (error instanceof CombinationOperationError) {
+          window.Messages.enqueue({ text: error.message, tags: 'error' });
+          // TODO: handle
+          console.log(error.errors);
+        } else {
+          console.error(error);
+        }
         stopUpdate();
-      }).catch(() => {
-        window.Messages.enqueue({
-          text: gettext('Failed to create combinations.'),
-          tags: 'error',
-        });
-        stopUpdate();
-      });
-    } else {
-      setState((prevState) => ({...prevState, newVariationData: {}, newProductData: [], combinationsToDelete: []}));
-      stopUpdate();
+      }
     }
+
+    setState((prevState) => ({
+      ...prevState,
+      newVariationData: {},
+      newProductData: [],
+      combinationsToDelete: [],
+    }));
+    stopUpdate();
   };
 
   /*
-        Rendering the view for current state
-    */
+    Rendering the view for current state
+  */
   if (state.loading) {
     return (
       <div className="flex-d flex-grow-1 text-center">
@@ -339,48 +404,73 @@ const App = () => {
   const variableOptions = Object.keys(state.preSavedVariationsData).filter((item) => !(Object.keys(variationData).includes(item)));
 
   /*
-            Component for actions (shown on top and bottom of all product combinations)
-        */
+      Component for actions (shown on top and bottom of all product combinations)
+  */
   let actionsComponent = null;
-  if (!state.updating) {
-    actionsComponent = (
-      hasNewVariations ? (
-        <div>
-          <div className="d-flex flex-column m-3">
-            <button
-              type="button"
-              className="btn btn-primary mb-4"
-              onClick={(e) => {
-                e.preventDefault();
-                finalizePendingCombinations();
+  if (state.updating) {
+    if (state.createProgress) {
+      const progressPercentage = state.createProgress.toFixed(0);
+      actionsComponent = (
+        <div className="text-center m-3">
+          <h3>{gettext('Creating variations...')}</h3>
+          <p className="text-center text-warning">{gettext('Keep this page open to create all variations.')}</p>
+          <div className="progress">
+            <div
+              className="progress-bar"
+              role="progressbar"
+              style={{
+                width: `${progressPercentage}%`,
               }}
+              aria-valuenow={progressPercentage}
+              aria-valuemin="0"
+              aria-valuemax="100"
             >
-              { gettext('Confirm pending changes to combinations') }
-            </button>
-          </div>
-          <div className="d-flex flex-column m-3">
-            <button
-              type="button"
-              className="btn btn-primary btn-inverse mb-4"
-              onClick={() => setState((prevState) => ({ ...prevState, newVariationData: {} }))}
-            >
-              { gettext('Cancel pending changes to combinations') }
-            </button>
+              {`${progressPercentage}%`}
+            </div>
           </div>
         </div>
-      ) : (
+      );
+    }
+  } else if (hasNewVariations) {
+    actionsComponent = (
+      <div>
         <div className="d-flex flex-column m-3">
           <button
             type="button"
             className="btn btn-primary mb-4"
-            onClick={() => setState((prevState) => ({ ...prevState, organizing: true }))}
+            onClick={(e) => {
+              e.preventDefault();
+              finalizePendingCombinations();
+            }}
           >
-            { gettext('Organize current variations') }
+            { gettext('Confirm pending changes to combinations') }
           </button>
         </div>
-      )
+        <div className="d-flex flex-column m-3">
+          <button
+            type="button"
+            className="btn btn-primary btn-inverse mb-4"
+            onClick={() => setState((prevState) => ({ ...prevState, newVariationData: {} }))}
+          >
+            { gettext('Cancel pending changes to combinations') }
+          </button>
+        </div>
+      </div>
+    );
+  } else {
+    actionsComponent = (
+      <div className="d-flex flex-column m-3">
+        <button
+          type="button"
+          className="btn btn-primary mb-4"
+          onClick={() => setState((prevState) => ({ ...prevState, organizing: true }))}
+        >
+          { gettext('Organize current variations') }
+        </button>
+      </div>
     );
   }
+
   return (
     <div>
       <h3>{ gettext('Add variations') }</h3>
@@ -441,7 +531,7 @@ const App = () => {
             <div className="d-flex flex-column m-3">
               <h3 className="mb-4">{ gettext('Product combinations') }</h3>
               {getCombinations(variationData, 0, [], {}).map((item, idx) => {
-                const combinationStr = Object.keys(item).map((k) => `${k}: ${item[k]}`).join(', ');
+                const combinationStr = getCombinationString(item);
                 const productId = getProductIdForCombination(state.productIdToCombinationMap, item);
                 let data = {};
                 if (productId) {
@@ -452,23 +542,28 @@ const App = () => {
                 }
                 const extraCSS = (idx % 2 ? 'bg-light' : '');
                 return (
-                  <div className={`d-flex flex-column mb-3 ${extraCSS}`} key={`combination-${idx}`}>
+                  <div className={`d-flex flex-column mb-3 ${extraCSS}`} key={combinationStr}>
                     <h4>{ combinationStr }</h4>
                     {productId ? (
                       <CurrentVariable
-                        key={combinationStr}
                         productData={data}
                         combination={item}
                         updating={state.updating}
-                        onSuccess={() => {
-                          setState((prevState) => ({ ...prevState, updating: true }));
+                        onUpdateSuccess={(updatedData) => {
+                          const newCombinationData = updatedData.combinations.find((comb) => (
+                            getCombinationString(comb.combination) === combinationStr
+                          ));
+                          console.log(newCombinationData);
+                          setState((prevState) => ({
+                            ...prevState,
+                            updating: true,
+                          }));
                           const combinationURL = window.SHUUP_PRODUCT_VARIATIONS_DATA.combinations_url;
                           fetchCombinations(combinationURL);
                         }}
                       />
                     ) : (
                       <NewVariable
-                        key={combinationStr}
                         productData={data}
                         updating={state.updating}
                         onUpdate={(newData) => {

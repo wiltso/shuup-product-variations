@@ -13,7 +13,7 @@ import {
 } from './utils';
 
 const CurrentVariable = ({
-  combination, productData, updating, onSuccess,
+  combination, productData, updating, onUpdateSuccess,
 }) => {
   const [state, setState] = useState({
     // statuses for sku input
@@ -99,18 +99,20 @@ const CurrentVariable = ({
   }
 
   /*
-        update values to the backend application
+    update values to the backend application
 
-        Notes:
-          - disable all inputs for the row
-          - show updating help text
-          - on success show success help text and refetch combinations for the main state
-          - on error show error help text and stop the update
-    */
+    Notes:
+      - disable all inputs for the row
+      - show updating help text
+      - on success show success help text and refetch combinations for the main state
+      - on error show error help text and stop the update
+  */
   function updateSKU() {
     Client.post(getURL(), getData())
-      .then(() => {
-        onSuccess();
+      .then((response) => {
+        if (onUpdateSuccess) {
+          onUpdateSuccess(response.data);
+        }
         setState((prevState) => ({
           ...prevState,
           updatingSKU: false,
@@ -149,8 +151,10 @@ const CurrentVariable = ({
 
   function updateDefaultPrice() {
     Client.post(getURL(), getData())
-      .then(() => {
-        onSuccess();
+      .then((response) => {
+        if (onUpdateSuccess) {
+          onUpdateSuccess(response.data);
+        }
         setState((prevState) => ({
           ...prevState,
           updatingDefaultPrice: false,
@@ -188,8 +192,10 @@ const CurrentVariable = ({
 
   function updateStockCount() {
     Client.post(getURL(), getData())
-      .then(() => {
-        onSuccess();
+      .then((response) => {
+        if (onUpdateSuccess) {
+          onUpdateSuccess(response.data);
+        }
         setState((prevState) => ({
           ...prevState,
           updatingStockCount: false,

@@ -6,10 +6,8 @@
 # This source code is licensed under the OSL-3.0 license found in the
 # LICENSE file in the root directory of this source tree.
 import json
-from collections import defaultdict
 
 import six
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models import F, OuterRef, Subquery
 from django.db.transaction import atomic
@@ -19,14 +17,10 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import DetailView
 from shuup.admin.shop_provider import get_shop
 from shuup.admin.supplier_provider import get_supplier
-from shuup.core.models import (
-    Product, ProductVariationVariable,
-    ProductVariationVariableValue, ShopProduct
-)
+from shuup.core.models import Product, ShopProduct
 from shuup.utils.djangoenv import has_installed
 from shuup_product_variations.admin.views.serializers import (
-    OrderingSerializer, ProductCombinationsDeleteSerializer,
-    ProductCombinationsSerializer, TranslationSerializer
+    ProductCombinationsDeleteSerializer, ProductCombinationsSerializer
 )
 
 
@@ -149,7 +143,7 @@ class ProductCombinationsView(DetailView):
                     "code": exc.code
                 }, status=400)
 
-        return JsonResponse({})
+        return JsonResponse(serializer.validated_data)
 
     def delete(self, request, *args, **kwargs):
         instance = self.get_object()

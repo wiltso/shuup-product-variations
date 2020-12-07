@@ -77,14 +77,19 @@ class ProductCombinationSerializer(serializers.Serializer):
     price = FormattedDecimalField(required=False)
     stock_count = serializers.IntegerField(required=False)
 
-    def validate(self, data):
-        data = super().validate(data)
+
+class ProductCombinationsSerializer(serializers.Serializer):
+    combinations = ProductCombinationSerializer(many=True)
+
+    def _get_combination_instances(self, combination):
+        """
+        Convert the combination map of strings into map of instances
+        """
         product = self.context["product"]
-        combination_data = data["combination"]
-        combination = dict()
+        combination_instance = dict()
 
         # convert combination string map to variation instance map
-        for variable_name, variable_value in combination_data.items():
+        for variable_name, variable_value in combination.items():
             variable = ProductVariationVariable.objects.filter(
                 product=product,
                 translations__name=variable_name
@@ -107,14 +112,8 @@ class ProductCombinationSerializer(serializers.Serializer):
                     value=variable_value
                 )
 
-            combination[variable] = value
-
-        data["combination"] = combination
-        return data
-
-
-class ProductCombinationsSerializer(serializers.Serializer):
-    combinations = ProductCombinationSerializer(many=True)
+            combination_instance[variable] = value
+        return combination_instance
 
     def save(self):
         parent_product = self.context["product"]
@@ -125,13 +124,19 @@ class ProductCombinationsSerializer(serializers.Serializer):
 
         with atomic():
             for combination in self.validated_data["combinations"]:
+                combination_data = combination.copy()
+                combination_data["combination"] = self._get_combination_instances(combination["combination"])
+
                 variation_child, variation_child_shop_product = variation_updater.update_or_create_variation(
                     shop,
                     supplier,
                     parent_product,
-                    combination
+                    combination_data=combination_data
                 )
                 variations.append(variation_child)
+
+                # populate the validated data with the product id
+                combination["product_id"] = variation_child.pk
 
         return variations
 

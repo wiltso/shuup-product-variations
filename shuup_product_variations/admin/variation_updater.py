@@ -91,6 +91,7 @@ class VariationUpdater():
                         shop=shop,
                         parent_product=parent_product,
                         deleted_product=existing_product,
+                        combination=combination,
                         combination_hash=combination_hash
                     )
 
@@ -100,6 +101,7 @@ class VariationUpdater():
                     shop=shop,
                     parent_product=parent_product,
                     sku=sku,
+                    combination=combination,
                     combination_hash=combination_hash
                 )
 
@@ -124,18 +126,35 @@ class VariationUpdater():
 
     def delete_variation(self, shop: Shop, supplier: Optional[Supplier],
                          parent_product: Product, variation: Product):
-
-        variation.unlink_from_parent()
         variation.soft_delete()
         ProductVariationResult.objects.filter(
             product=parent_product,
             result=variation
-        ).delete()
+        ).update(
+            status=ProductVariationLinkStatus.INVISIBLE
+        )
 
 
-def recover_deleted_product(parent_product: Product, shop: Shop,
-                            deleted_product: Product, combination_hash: str) -> Product:
-    deleted_product.name = parent_product.name
+def get_variation_product_name(parent_product: Product, combination: Combination):
+    variation_part = [
+        "{variable}:{variable_value}".format(
+            variable=variable.name,
+            variable_value=variable_value.value
+        )
+        for (variable, variable_value) in combination.items()
+    ]
+    return "{name} - {variation_part}".format(
+        name=parent_product.name,
+        variation_part=" - ".join(variation_part)
+    )
+
+
+def recover_deleted_product(parent_product: Product,
+                            shop: Shop,
+                            deleted_product: Product,
+                            combination: Combination,
+                            combination_hash: str) -> Product:
+    deleted_product.name = get_variation_product_name(parent_product, combination)
     deleted_product.tax_class = parent_product.tax_class
     deleted_product.sales_unit = parent_product.sales_unit
     deleted_product.shipping_mode = parent_product.shipping_mode
@@ -151,10 +170,13 @@ def recover_deleted_product(parent_product: Product, shop: Shop,
     return deleted_product
 
 
-def create_variation_product(parent_product: Product, shop: Shop,
-                             sku: str, combination_hash: str) -> Product:
+def create_variation_product(parent_product: Product,
+                             shop: Shop,
+                             sku: str,
+                             combination: Combination,
+                             combination_hash: str) -> Product:
     variation_child = Product(
-        name=parent_product.name,
+        name=get_variation_product_name(parent_product, combination),
         tax_class=parent_product.tax_class,
         sales_unit=parent_product.sales_unit,
         sku=sku,
