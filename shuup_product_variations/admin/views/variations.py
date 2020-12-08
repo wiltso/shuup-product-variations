@@ -10,7 +10,11 @@ from collections import defaultdict
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.generic import ListView
-from shuup_product_variations.models import VariationVariableValue
+from shuup_product_variations.models import (
+    VariationVariable, VariationVariableValue
+)
+
+from .variations_base import VariationBaseDetailView
 
 
 class VariationsListView(ListView):
@@ -20,13 +24,38 @@ class VariationsListView(ListView):
         return VariationVariableValue.objects.none()  # lol
 
     def get(self, request, *args, **kwargs):
-        variations_data = defaultdict(list)
-        for variable, value in (
+        variables_id_to_data = {}
+        values_data = defaultdict(list)
+        for variable_id, variable_order, variable_name, value_id, value_order, value_name in (
             VariationVariableValue.objects
                 .language(settings.PARLER_DEFAULT_LANGUAGE_CODE)
-                .all()
-                .values_list("variable__translations__name", "translations__value")
+                .filter(
+                    variable__translations__language_code=settings.PARLER_DEFAULT_LANGUAGE_CODE,
+                    translations__language_code=settings.PARLER_DEFAULT_LANGUAGE_CODE
+                )
+                .values_list(
+                    "variable_id",
+                    "variable__ordering",
+                    "variable__translations__name",
+                    "pk",
+                    "ordering",
+                    "translations__value"
+                ).distinct()
         ):
-            variations_data[variable].append(value)
+            variables_id_to_data[variable_id] = {"name": variable_name, "order": variable_order}
+            values_data[variable_id].append({
+                "id": value_id, "order": value_order, "name":  value_name
+            })
 
-        return JsonResponse({"variations": variations_data})
+        return JsonResponse({
+            "variables": variables_id_to_data,
+            "values": values_data
+        })
+
+
+class VariationVariableDetailView(VariationBaseDetailView):
+    model = VariationVariable
+
+
+class VariationVariableValueDetailView(VariationBaseDetailView):
+    model = VariationVariableValue

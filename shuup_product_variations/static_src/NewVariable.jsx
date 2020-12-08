@@ -45,7 +45,7 @@ const NewVariable = ({ productData, updating, onUpdate }) => {
       if (productData.price !== ensuredValue) {
         const newData = { ...state.productData };
         newData.price = ensuredValue;
-        onUpdate(newData);
+        state.onUpdate(newData);
       }
     }
   }, []);
@@ -64,7 +64,7 @@ const NewVariable = ({ productData, updating, onUpdate }) => {
           type="text"
           className="form-control"
           value={state.productData.sku}
-          onChange={updateSku}
+          onChange={(event) => {updateSku(event)}}
           disabled={updating}
         />
       </div>
@@ -74,7 +74,7 @@ const NewVariable = ({ productData, updating, onUpdate }) => {
           type="text"
           className="form-control"
           value={state.productData.price}
-          onChange={updateDefaultPrice}
+          onChange={(event) => {updateDefaultPrice(event)}}
           disabled={updating}
         />
       </div>
@@ -85,7 +85,7 @@ const NewVariable = ({ productData, updating, onUpdate }) => {
             type="text"
             className="form-control"
             value={state.productData.stock_count}
-            onChange={updateStockCount}
+            onChange={(event) => {updateStockCount(event)}}
             disabled={updating}
           />
         </div>

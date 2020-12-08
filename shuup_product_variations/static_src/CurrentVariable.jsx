@@ -32,6 +32,7 @@ const CurrentVariable = ({
     stockCountUpdateSuccess: false,
 
     // current product data for the row
+    changed: false,
     productData: productData || {},
   });
 
@@ -44,6 +45,7 @@ const CurrentVariable = ({
     return setState((prevState) => ({
       ...prevState,
       productData: newData,
+      changed: true,
     }));
   }
 
@@ -57,6 +59,7 @@ const CurrentVariable = ({
     return setState((prevState) => ({
       ...prevState,
       productData: newData,
+      changed: true,
     }));
   }
 
@@ -70,6 +73,7 @@ const CurrentVariable = ({
     return setState((prevState) => ({
       ...prevState,
       productData: newData,
+      changed: true
     }));
   }
 
@@ -108,127 +112,142 @@ const CurrentVariable = ({
       - on error show error help text and stop the update
   */
   function updateSKU() {
-    Client.post(getURL(), getData())
-      .then((response) => {
-        if (onUpdateSuccess) {
-          onUpdateSuccess(response.data);
-        }
-        setState((prevState) => ({
-          ...prevState,
-          updatingSKU: false,
-          skuUpdateSuccess: true,
-          defaultPriceUpdateSuccess: false,
-          stockCountUpdateSuccess: false,
-        }));
-      })
-      .catch((error) => {
-        let errorText = gettext('Updating SKU failed');
-        if (error.response && error.response.data && error.response.data.error) {
-          errorText = error.response.data.error;
-        }
-
-        if (window._.isObject(errorText)) {
-          if (errorText.combinations) {
-            errorText = errorText.combinations[0].sku;
+    if (state.changed) {
+      Client.post(getURL(), getData())
+        .then((response) => {
+          if (onUpdateSuccess) {
+            onUpdateSuccess(response.data);
           }
-        }
+          setState((prevState) => ({
+            ...prevState,
+            updatingSKU: false,
+            skuUpdateSuccess: true,
+            defaultPriceUpdateSuccess: false,
+            stockCountUpdateSuccess: false,
+          }));
+        })
+        .catch((error) => {
+          let errorText = gettext('Updating SKU failed');
+          if (error.response && error.response.data && error.response.data.error) {
+            errorText = error.response.data.error;
+          }
 
-        setState((prevState) => ({
-          ...prevState,
-          updatingSKU: false,
-          skuUpdateSuccess: false,
-          defaultPriceUpdateSuccess: false,
-          stockCountUpdateSuccess: false,
-          skuUpdateError: errorText,
-        }));
-      });
+          if (window._.isObject(errorText)) {
+            if (errorText.combinations) {
+              errorText = errorText.combinations[0].sku;
+            }
+          }
 
+          setState((prevState) => ({
+            ...prevState,
+            updatingSKU: false,
+            skuUpdateSuccess: false,
+            defaultPriceUpdateSuccess: false,
+            stockCountUpdateSuccess: false,
+            skuUpdateError: errorText,
+          }));
+        });
+
+      return setState((prevState) => ({
+        ...prevState,
+        updatingSKU: true,
+      }));
+    }
     return setState((prevState) => ({
       ...prevState,
-      updatingSKU: true,
     }));
   }
 
   function updateDefaultPrice() {
-    Client.post(getURL(), getData())
-      .then((response) => {
-        if (onUpdateSuccess) {
-          onUpdateSuccess(response.data);
-        }
-        setState((prevState) => ({
-          ...prevState,
-          updatingDefaultPrice: false,
-          skuUpdateSuccess: false,
-          defaultPriceUpdateSuccess: true,
-          stockCountUpdateSuccess: false,
-        }));
-      })
-      .catch((error) => {
-        let errorText = gettext('Updating price failed');
-        if (error.response && error.response.data && error.response.data.error) {
-          errorText = error.response.data.error;
-        }
-
-        if (window._.isObject(errorText)) {
-          if (errorText.combinations) {
-            errorText = errorText.combinations[0].price;
+    if (state.changed) {
+      Client.post(getURL(), getData())
+        .then((response) => {
+          if (onUpdateSuccess) {
+            onUpdateSuccess(response.data);
           }
-        }
+          setState((prevState) => ({
+            ...prevState,
+            updatingDefaultPrice: false,
+            skuUpdateSuccess: false,
+            defaultPriceUpdateSuccess: true,
+            stockCountUpdateSuccess: false,
+          }));
+        })
+        .catch((error) => {
+          let errorText = gettext('Updating price failed');
+          if (error.response && error.response.data && error.response.data.error) {
+            errorText = error.response.data.error;
+          }
 
-        setState((prevState) => ({
-          ...prevState,
-          updatingDefaultPrice: false,
-          skuUpdateSuccess: false,
-          defaultPriceUpdateSuccess: false,
-          stockCountUpdateSuccess: false,
-          defaultPriceUpdateError: errorText,
-        }));
-      });
+          if (window._.isObject(errorText)) {
+            if (errorText.combinations) {
+              errorText = errorText.combinations[0].price;
+            }
+          }
+
+          setState((prevState) => ({
+            ...prevState,
+            updatingDefaultPrice: false,
+            skuUpdateSuccess: false,
+            defaultPriceUpdateSuccess: false,
+            stockCountUpdateSuccess: false,
+            defaultPriceUpdateError: errorText,
+          }));
+        });
+      return setState((prevState) => ({
+        ...prevState,
+        updatingDefaultPrice: true,
+      }));
+    }
     return setState((prevState) => ({
       ...prevState,
-      updatingDefaultPrice: true,
     }));
   }
 
   function updateStockCount() {
-    Client.post(getURL(), getData())
-      .then((response) => {
-        if (onUpdateSuccess) {
-          onUpdateSuccess(response.data);
-        }
-        setState((prevState) => ({
-          ...prevState,
-          updatingStockCount: false,
-          skuUpdateSuccess: false,
-          defaultPriceUpdateSuccess: false,
-          stockCountUpdateSuccess: true,
-        }));
-      })
-      .catch((error) => {
-        let errorText = gettext('Updating price failed');
-        if (error.response && error.response.data && error.response.data.error) {
-          errorText = error.response.data.error;
-        }
-
-        if (window._.isObject(errorText)) {
-          if (errorText.combinations) {
-            errorText = errorText.combinations[0].stock_count;
+    if (state.changed) {
+      Client.post(getURL(), getData())
+        .then((response) => {
+          if (onUpdateSuccess) {
+            onUpdateSuccess(response.data);
           }
-        }
+          setState((prevState) => ({
+            ...prevState,
+            updatingStockCount: false,
+            skuUpdateSuccess: false,
+            defaultPriceUpdateSuccess: false,
+            stockCountUpdateSuccess: true,
+          }));
+        })
+        .catch((error) => {
+          let errorText = gettext('Updating price failed');
+          if (error.response && error.response.data && error.response.data.error) {
+            errorText = error.response.data.error;
+          }
 
-        setState((prevState) => ({
-          ...prevState,
-          updatingStockCount: false,
-          skuUpdateSuccess: false,
-          defaultPriceUpdateSuccess: false,
-          stockCountUpdateSuccess: false,
-          stockCountUpdateError: errorText,
-        }));
-      });
+          if (window._.isObject(errorText)) {
+            if (errorText.combinations) {
+              errorText = errorText.combinations[0].stock_count;
+            }
+          }
 
+          setState((prevState) => ({
+            ...prevState,
+            updatingStockCount: false,
+            skuUpdateSuccess: false,
+            defaultPriceUpdateSuccess: false,
+            stockCountUpdateSuccess: false,
+            stockCountUpdateError: errorText,
+          }));
+        });
+
+      return setState((prevState) => ({
+        ...prevState,
+        updatingStockCount: true,
+      }));
+    }
     return setState((prevState) => ({
       ...prevState,
-      updatingStockCount: true,
     }));
   }
 

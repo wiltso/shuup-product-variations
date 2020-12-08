@@ -11,32 +11,26 @@ from typing import Dict, NewType, Optional
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from shuup.core.models import (
-    Product, ProductVariationLinkStatus, ProductVariationResult,
-    ProductVariationVariable, ProductVariationVariableValue, Shop, ShopProduct,
-    Supplier
+    Product, ProductVariationLinkStatus, ProductVariationResult, Shop,
+    ShopProduct, Supplier
 )
 from shuup.core.models._product_variation import hash_combination
 
-Combination = NewType("Combination", Dict[ProductVariationVariable, ProductVariationVariableValue])
+Combination = NewType("Combination", Dict[str, str])
 
 
 class VariationUpdater():
     def update_or_create_variation(self, shop: Shop, supplier: Optional[Supplier],  # noqa (C901)
-                                   parent_product: Product, combination_data: Dict):
+                                   parent_shop_product: ShopProduct, combination_data: Dict):
         sku = combination_data["sku"]   # type: str
-        combination = combination_data["combination"]   # type: Combination
-        combination_hash = hash_combination(combination)
+        combination_instance_data = combination_data["combination_data"]   # type: Combination
+        combination_hash = hash_combination(combination_instance_data["combination_pks"])
 
         # search the product by the combination hash
         variation_result = ProductVariationResult.objects.filter(
-            product=parent_product,
+            product=parent_shop_product.product,
             combination_hash=combination_hash
         ).first()
-
-        parent_shop_product = parent_product.get_shop_instance(shop)
-        # when there is no current supplier set, use the single supplier configured for the product, if any
-        if not supplier and parent_shop_product.suppliers.count() == 1:
-            supplier = parent_shop_product.suppliers.first()
 
         # there is already a variation value with a product set,
         # use it and make sure the status is active
@@ -89,9 +83,9 @@ class VariationUpdater():
                         or (supplier and variation_shop_product.suppliers.filter(pk=supplier.pk).exists())):
                     variation_child = recover_deleted_product(
                         shop=shop,
-                        parent_product=parent_product,
+                        parent_product=parent_shop_product.product,
                         deleted_product=existing_product,
-                        combination=combination,
+                        combination=combination_instance_data["combination_names"],
                         combination_hash=combination_hash
                     )
 
@@ -99,22 +93,17 @@ class VariationUpdater():
                 # create a new variation child for the given combination
                 variation_child = create_variation_product(
                     shop=shop,
-                    parent_product=parent_product,
+                    parent_product=parent_shop_product.product,
                     sku=sku,
-                    combination=combination,
+                    combination=combination_instance_data["combination_names"],
                     combination_hash=combination_hash
                 )
 
-        variation_shop_product = ShopProduct.objects.get_or_create(
+        variation_shop_product = ShopProduct.objects.update_or_create(
             shop=shop,
-            product=variation_child
+            product=variation_child,
+            defaults=dict(default_price_value=combination_data.get("price", 0))
         )[0]
-        variation_shop_product.suppliers.set(parent_shop_product.suppliers.all())
-
-        # set the price
-        if combination_data.get("price"):
-            variation_shop_product.default_price_value = combination_data["price"]
-            variation_shop_product.save(update_fields=["default_price_value"])
 
         # only update stocks when there is a single supplier
         if supplier and combination_data.get("stock_count"):
@@ -137,9 +126,8 @@ class VariationUpdater():
 
 def get_variation_product_name(parent_product: Product, combination: Combination):
     variation_part = [
-        "{variable}:{variable_value}".format(
-            variable=variable.name,
-            variable_value=variable_value.value
+        "{variable_value}".format(
+            variable_value=variable_value
         )
         for (variable, variable_value) in combination.items()
     ]

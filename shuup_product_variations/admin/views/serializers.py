@@ -86,57 +86,70 @@ class ProductCombinationsSerializer(serializers.Serializer):
         Convert the combination map of strings into map of instances
         """
         product = self.context["product"]
-        combination_instance = dict()
-
+        combination_pks = dict()
+        combination_names = dict()
         # convert combination string map to variation instance map
         for variable_name, variable_value in combination.items():
             variable = ProductVariationVariable.objects.filter(
                 product=product,
                 translations__name=variable_name
-            ).first()
+            ).values_list("pk", flat=True).first()
             if not variable:
                 variable = ProductVariationVariable.objects.create(
                     product=product,
                     name=variable_name,
                     identifier=slugify(variable_name)
-                )
+                ).pk
 
             value = ProductVariationVariableValue.objects.filter(
                 variable=variable,
                 translations__value=variable_value
-            ).first()
+            ).values_list("pk", flat=True).first()
             if not value:
                 value = ProductVariationVariableValue.objects.create(
                     identifier=slugify(variable_value),
-                    variable=variable,
+                    variable_id=variable,
                     value=variable_value
-                )
+                ).pk
 
-            combination_instance[variable] = value
-        return combination_instance
+            combination_pks[variable] = value
+            combination_names[variable_name] = variable_value
+        return dict(
+            combination_pks=combination_pks,
+            combination_names=combination_names
+        )
 
     def save(self):
         parent_product = self.context["product"]
         shop = self.context["shop"]
         supplier = self.context["supplier"]
         variations = []
+        variation_shop_products = []
         variation_updater = cached_load("SHUUP_PRODUCT_VARIATIONS_VARIATION_UPDATER_SPEC")()
-
         with atomic():
+            parent_shop_product = parent_product.get_shop_instance(shop)
+            # when there is no current supplier set, use the single supplier configured for the product, if any
+            if not supplier and parent_shop_product.suppliers.count() == 1:
+                supplier = parent_shop_product.suppliers.first()
+
             for combination in self.validated_data["combinations"]:
                 combination_data = combination.copy()
-                combination_data["combination"] = self._get_combination_instances(combination["combination"])
-
+                combination_data["combination_data"] = self._get_combination_instances(combination["combination"])
                 variation_child, variation_child_shop_product = variation_updater.update_or_create_variation(
                     shop,
                     supplier,
-                    parent_product,
+                    parent_shop_product,
                     combination_data=combination_data
                 )
                 variations.append(variation_child)
-
+                variation_shop_products.append(variation_child_shop_product)
                 # populate the validated data with the product id
                 combination["product_id"] = variation_child.pk
+
+            # Just one supplier limitation. For multiple suppliers we should look into
+            # adding shop product supplier strategy to fallback
+            for parent_supplier in parent_shop_product.suppliers.all():
+                parent_supplier.shop_products.add(*variation_shop_products)
 
         return variations
 
@@ -173,5 +186,9 @@ class TranslationSerializer(serializers.Serializer):
     def save(self):
         item = self.context["item"]
         with switch_language(item, self.validated_data["language_code"]):
-            item.name = self.validated_data["name"]
+            if hasattr(item, "name"):
+                item.name = self.validated_data["name"]
+            else:
+                item.value = self.validated_data["name"]
+            item.save()
         return item

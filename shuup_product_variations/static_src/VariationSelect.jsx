@@ -1,0 +1,141 @@
+/**
+ * This file is part of Shuup.
+ *
+ * Copyright (c) 2012-2020, Shoop Commerce Ltd. All rights reserved.
+ *
+ * This source code is licensed under the OSL-3.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+import React, { useEffect, useState } from 'react';
+import CreatableSelect from 'react-select/creatable';
+import Select from 'react-select';
+import Client from './Client';
+
+
+const VariationSelect = ({
+    variationData,
+    onAddVariable,
+    onChangeVariableValues,
+    onRemoveVariable,
+    allowAddNewVariable,
+    canCreate,
+    allowEdit,
+    forceDisabled,
+    variationsUrl
+}) => {
+  const [state, setState] = useState({
+    preSavedVariables: [],
+    preSavedVariableValues: [],
+    loading: false,
+  });
+
+  /*
+    Initialize the state
+  */
+  useEffect(() => {
+    Client.get(variationsUrl)
+      .then((response) => {
+        const preSavedVariables = response.data.variables || {};
+        const preSavedVariableValues = response.data.values || {};
+        setState((prevState) => ({
+          ...prevState,
+          preSavedVariables,
+          preSavedVariableValues,
+          loading: false,
+        }));
+      })
+      .catch((error) => {
+        setState((prevState) => ({
+          ...prevState,
+          preSavedVariables: {},
+          preSavedVariableValues: {},
+          loading: false,
+        }));
+      })
+  }, []);
+
+  /*
+      loading view
+    */
+  if (state.loading) {
+    return (
+      <div className="flex-d flex-grow-1 text-center">
+        <div className="spinner-border text-primary" role="status">
+          <span className="sr-only">{ gettext('Loading...') }</span>
+        </div>
+      </div>
+    );
+  }
+
+  /*
+      rednder selects based on passed configuration
+    */
+  const SelectComponent = (canCreate ? CreatableSelect : Select);
+  const variableOptions = Object.keys(state.preSavedVariables).filter((variableId) => {
+    const variableData = state.preSavedVariables[variableId];
+    return (!(Object.keys(variationData).includes(variableData.name)))
+  }).map((variableId) => {
+    const variableData = state.preSavedVariables[variableId];
+    return {variableId, variableName: variableData.name};
+  });
+  return (
+    <div>
+      <h3>{ gettext('Add variations') }</h3>
+      {Object.keys(variationData).map((variableName, idx) => {
+        const values = variationData[variableName];
+        const variableId = Object.keys(state.preSavedVariables).filter((variableId) => {
+          const item = state.preSavedVariables[variableId];
+          return (item.name === variableName);
+        })
+        const valueOptions = (state.preSavedVariableValues[variableId] || []).filter((item) => {
+          return (!values.includes(item.name))
+        });
+        return (
+          <div className="d-flex m-3 align-items-end" key={`pending-variations-${idx}`}>
+            <div className="d-flex flex-grow-1 flex-column">
+              <h4 className="control-label">{ variableName }</h4>
+              <SelectComponent
+                placeholder={gettext('Select values for variable...')}
+                isMulti
+                onChange={(selected) => {
+                  onChangeVariableValues(variableName, selected || []);
+                }}
+                isDisabled={!allowEdit || forceDisabled}
+                value={values.map((item) => ({ value: item, label: item }))}
+                options={valueOptions.map((item) => ({ value: item.name, label: item.name }))}
+                form="new-variable-value-form"
+              />
+            </div>
+            {allowEdit && (
+              <div>
+                <i
+                  className="fa fa-trash fa-2x align-self-center ml-4"
+                  onClick={() => {
+                    onRemoveVariable(variableId, variableName);
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        );
+      })}
+      {allowAddNewVariable && (
+        <div className="d-flex m-3" key="pending-variations-new">
+          <SelectComponent
+            className="flex-grow-1 mr-1"
+            placeholder={gettext('Add new variable...')}
+            onChange={(newValue) => {
+                onAddVariable(newValue);
+            }}
+            isDisabled={forceDisabled}
+            value={null}
+            defaultValue={[]}
+            options={variableOptions.map((item) => ({ value: item.variableId, label: item.variableName }))}
+            form="new-variable-form"
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+export default VariationSelect;

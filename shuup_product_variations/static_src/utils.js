@@ -29,7 +29,7 @@ export function getCombinations(options, optionIndex, results, current) {
 }
 
 export function getNewDataForCombination(combinationToData, combination) {
-  if (combinationToData.length > 0) {
+  if (combinationToData && combinationToData.length > 0) {
     return combinationToData.find((item) => window._.isEqual(item.combination, combination));
   }
   return {

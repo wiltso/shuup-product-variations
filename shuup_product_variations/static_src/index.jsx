@@ -8,11 +8,11 @@
  */
 import ReactDOM from 'react-dom';
 import React, { useEffect, useState } from 'react';
-import CreatableSelect from 'react-select/creatable';
-import Select from 'react-select';
 import CurrentVariable from './CurrentVariable';
 import NewVariable from './NewVariable';
 import ProductVariationOrganizer from './ProductVariationOrganizer';
+import VariationSelect from './VariationSelect';
+import Combinations from './Combinations';
 import {
   getCombinations,
   getNewDataForCombination,
@@ -21,6 +21,10 @@ import {
   updateNewDataForCombination,
 } from './utils';
 import Client from './Client';
+
+const getCombinationString = (combination) => (
+  Object.keys(combination).map((k) => `${k}: ${combination[k]}`).join(', ')
+);
 
 class CombinationOperationError extends Error {
   constructor(message, errors) {
@@ -58,11 +62,11 @@ const CombinationsCreator = {
     if (this.combinationQueue.length === 0) {
       onFinish();
     } else {
-      const combination = this.combinationQueue.pop();
-      that.currentIndex += 1;
+      const combinations = this.combinationQueue.splice(0, 5);
+      that.currentIndex += combinations.length;
       that.onUpdateProgress((that.currentIndex / this.totalToProcess) * 100.0);
 
-      createCombinations([combination]).then(() => {
+      createCombinations(combinations).then(() => {
         that.createNextCombination(onFinish);
       }).catch((error) => {
         that.errors.push(error);
@@ -80,8 +84,9 @@ const CombinationsCreator = {
 
     return new Promise((resolve, reject) => {
       this.createNextCombination(() => {
-        if (this.errors) {
-          reject(new CombinationOperationError(gettext('Failed to delete combinations'), this.errors));
+        const that = this;
+        if (that.errors.length > 0) {
+          reject(new CombinationOperationError(gettext('Failed to create combinations'), this.errors));
         } else {
           resolve();
         }
@@ -108,10 +113,6 @@ const createAllCombinations = async (combinations, onUpdateProgress) => {
   }
 };
 
-const getCombinationString = (combination) => (
-  Object.keys(combination).map((k) => `${k}: ${combination[k]}`).join(', ')
-);
-
 const App = () => {
   const [state, setState] = useState({
 
@@ -127,7 +128,7 @@ const App = () => {
     combinationsToDelete: [],
 
     // three different modes
-    loading: false,
+    loading: true,
     updating: false,
     organizing: false,
 
@@ -178,27 +179,8 @@ const App = () => {
     }
   };
 
-  const fetchVariations = async (url) => {
-    try {
-      const res = await fetch(url);
-      const data = await res.json();
-      const preSavedVariationsData = data.variations || {};
-      setState((prevState) => ({
-        ...prevState,
-        preSavedVariationsData,
-      }));
-    } catch {
-      // setError(true);
-    } finally {
-      // setLoading(false);
-    }
-  };
   useEffect(() => {
-    setState((prevState) => ({ ...prevState, loading: true }));
-    const variationURL = window.SHUUP_PRODUCT_VARIATIONS_DATA.product_variations_url;
-    fetchVariations(variationURL);
-    const combinationURL = window.SHUUP_PRODUCT_VARIATIONS_DATA.combinations_url;
-    fetchCombinations(combinationURL);
+    fetchCombinations(window.SHUUP_PRODUCT_VARIATIONS_DATA.combinations_url);
   }, []);
 
   /*
@@ -235,16 +217,16 @@ const App = () => {
   /*
       Help utils to update the current state based on customer variation updates
     */
-  const removeVariationSelect = (variable) => {
+  const removeVariationSelect = (variableId, variableName) => {
     const hasNewVariations = (
       Object.keys(state.newVariationData).length > 0
       || state.combinationsToDelete.length > 0
     );
     let newVariationData = (hasNewVariations ? state.newVariationData : { ...state.variationData });
-    delete newVariationData[variable];
+    delete newVariationData[variableName];
     const newProductData = getMissingProductData(newVariationData);
     const combinationsToDelete = getCombinationsToDelete(state.variationData, newVariationData);
-    if (combinationsToDelete.length === 0) {
+    if (newProductData.length === 0 && combinationsToDelete.length === 0) {
       // Here we have special case when the newVariationsData should be reset
       newVariationData = {};
     }
@@ -259,22 +241,32 @@ const App = () => {
       || state.combinationsToDelete.length > 0
     );
     const newVariationData = (hasNewVariations ? state.newVariationData : { ...state.variationData });
-    const selectedValue = selectedOption.value;
+    const selectedValue = selectedOption.label;
     if (!Object.keys(newVariationData).includes(selectedValue)) {
       newVariationData[selectedValue] = [];
     }
     return setState((prevState) => ({ ...prevState, newVariationData }));
   };
 
-  const updateVariationSelectValues = (variable, selectedOptions) => {
-    const selectedVariableValues = selectedOptions.map((item) => item.value);
+  const updateVariationSelectValues = (variableName, selectedOptions) => {
+    const selectedVariableValues = selectedOptions.map((item) => item.label);
     const hasNewVariations = (
       Object.keys(state.newVariationData).length > 0
       || state.combinationsToDelete.length > 0
     );
     let newVariationData = (hasNewVariations ? state.newVariationData : { ...state.variationData });
-    if (variable) {
-      newVariationData[variable] = selectedVariableValues;
+    if (selectedVariableValues.length === 0) {
+      delete newVariationData[variableName];
+    } else {
+      const adding = (newVariationData[variableName].length < selectedVariableValues.length);
+      if (adding && selectedVariableValues.length > window.SHUUP_PRODUCT_VARIATIONS_DATA.max_values) {
+        window.Messages.enqueue({
+          text: gettext('Maximum variable values reached.'),
+          tags: 'warning',
+        });
+      } else {
+        newVariationData[variableName] = selectedVariableValues;
+      }
     }
     const newProductData = getMissingProductData(newVariationData);
     const combinationsToDelete = getCombinationsToDelete(state.variationData, newVariationData);
@@ -301,8 +293,8 @@ const App = () => {
     }));
 
     const stopUpdate = () => {
-      const combinationURL = window.SHUUP_PRODUCT_VARIATIONS_DATA.combinations_url;
-      fetchCombinations(combinationURL);
+      setState((prevState) => ({...prevState, updating: true }));
+      fetchCombinations(window.SHUUP_PRODUCT_VARIATIONS_DATA.combinations_url);
     };
 
     // Delete old combinations
@@ -368,6 +360,10 @@ const App = () => {
       </div>
     );
   }
+
+  /*
+    Organize variations (at this point there isn't any pending changes)
+  */
   if (state.organizing) {
     /*
       Here user can update the variation order, re-name and translate variations
@@ -380,7 +376,7 @@ const App = () => {
     return (
       <ProductVariationOrganizer
         productId={window.SHUUP_PRODUCT_VARIATIONS_DATA.product_id}
-        onQuit={() => setState((prevState) => ({ ...prevState, organizing: false }))}
+        onQuit={() => {return setState((prevState) => ({ ...prevState, organizing: false }))}}
       />
     );
   }
@@ -400,8 +396,6 @@ const App = () => {
   const variationData = (hasNewVariations ? state.newVariationData : state.variationData);
   const hasAnyVariationsMissingValues = Object.keys(variationData).find((variable) => (variationData[variable].length === 0));
   const maxVariablesReached = (Object.keys(variationData).length > (window.SHUUP_PRODUCT_VARIATIONS_DATA.max_variations - 1));
-  const SelectComponent = (window.SHUUP_PRODUCT_VARIATIONS_DATA.can_create ? CreatableSelect : Select);
-  const variableOptions = Object.keys(state.preSavedVariationsData).filter((item) => !(Object.keys(variationData).includes(item)));
 
   /*
       Component for actions (shown on top and bottom of all product combinations)
@@ -473,55 +467,17 @@ const App = () => {
 
   return (
     <div>
-      <h3>{ gettext('Add variations') }</h3>
-      {Object.keys(variationData).map((variable, idx) => {
-        const values = variationData[variable];
-        const valueOptions = state.preSavedVariationsData[variable] || [];
-        return (
-          <div className="d-flex m-3 align-items-end" key={`pending-variations-${idx}`}>
-            <div className="d-flex flex-grow-1 flex-column">
-              <h4 className="control-label">{ variable }</h4>
-              <SelectComponent
-                placeholder={gettext('Select values for variable...')}
-                isMulti
-                onChange={(selected) => {
-                  updateVariationSelectValues(variable, selected);
-                }}
-                isDisabled={!window.SHUUP_PRODUCT_VARIATIONS_DATA.can_edit || state.updating}
-                value={values.map((item) => ({ value: item, label: item }))}
-                options={valueOptions.map((item) => ({ value: item, label: item }))}
-                form="new-variable-value-form"
-              />
-            </div>
-            {window.SHUUP_PRODUCT_VARIATIONS_DATA.can_edit && (
-              <div>
-                <i
-                  className="fa fa-trash fa-2x align-self-center ml-4"
-                  onClick={() => {
-                    removeVariationSelect(variable);
-                  }}
-                />
-              </div>
-            )}
-          </div>
-        );
-      })}
-      {(window.SHUUP_PRODUCT_VARIATIONS_DATA.can_edit && !hasAnyVariationsMissingValues && !maxVariablesReached) && (
-        <div className="d-flex m-3" key="pending-variations-new">
-          <SelectComponent
-            className="flex-grow-1 mr-1"
-            placeholder={gettext('Add new variable...')}
-            onChange={(newValue) => {
-              addVariationSelectVariable(newValue);
-            }}
-            isDisabled={state.updating}
-            value={null}
-            defaultValue={[]}
-            options={variableOptions.map((item) => ({ value: item, label: item }))}
-            form="new-variable-form"
-          />
-        </div>
-      )}
+      <VariationSelect
+        variationData={variationData}
+        onAddVariable={addVariationSelectVariable}
+        onChangeVariableValues={updateVariationSelectValues}
+        onRemoveVariable={removeVariationSelect}
+        allowAddNewVariable={window.SHUUP_PRODUCT_VARIATIONS_DATA.can_edit && !hasAnyVariationsMissingValues && !maxVariablesReached}
+        canCreate={window.SHUUP_PRODUCT_VARIATIONS_DATA.can_create}
+        allowEdit={window.SHUUP_PRODUCT_VARIATIONS_DATA.can_edit}
+        forceDisabled={state.updating}
+        variationsUrl={window.SHUUP_PRODUCT_VARIATIONS_DATA.default_variations_url}
+      />
       {hasAnyVariationsMissingValues ? (
         <h3 className="mb-4">{ gettext('Make sure all variables has at least one value selected.') }</h3>
       ) : (
@@ -529,52 +485,17 @@ const App = () => {
           {actionsComponent}
           {Object.keys(variationData).length > 0 && (
             <div className="d-flex flex-column m-3">
-              <h3 className="mb-4">{ gettext('Product combinations') }</h3>
-              {getCombinations(variationData, 0, [], {}).map((item, idx) => {
-                const combinationStr = getCombinationString(item);
-                const productId = getProductIdForCombination(state.productIdToCombinationMap, item);
-                let data = {};
-                if (productId) {
-                  data = state.productData.find((pData) => pData.product_id === parseInt(productId, 10));
-                } else {
-                  // We should find it from newProductData
-                  data = getNewDataForCombination(state.newProductData, item);
-                }
-                const extraCSS = (idx % 2 ? 'bg-light' : '');
-                return (
-                  <div className={`d-flex flex-column mb-3 ${extraCSS}`} key={combinationStr}>
-                    <h4>{ combinationStr }</h4>
-                    {productId ? (
-                      <CurrentVariable
-                        productData={data}
-                        combination={item}
-                        updating={state.updating}
-                        onUpdateSuccess={(updatedData) => {
-                          const newCombinationData = updatedData.combinations.find((comb) => (
-                            getCombinationString(comb.combination) === combinationStr
-                          ));
-                          console.log(newCombinationData);
-                          setState((prevState) => ({
-                            ...prevState,
-                            updating: true,
-                          }));
-                          const combinationURL = window.SHUUP_PRODUCT_VARIATIONS_DATA.combinations_url;
-                          fetchCombinations(combinationURL);
-                        }}
-                      />
-                    ) : (
-                      <NewVariable
-                        productData={data}
-                        updating={state.updating}
-                        onUpdate={(newData) => {
-                          const newProductData = updateNewDataForCombination(state.newProductData, newData);
-                          return setState((prevState) => ({ ...prevState, newProductData }));
-                        }}
-                      />
-                    )}
-                  </div>
-                );
-              })}
+              <Combinations
+                combinations={getCombinations(variationData, 0, [], {})}
+                variationData={variationData}
+                productIdToCombinationMap={state.productIdToCombinationMap}
+                productData={state.productData}
+                newProductData={state.newProductData}
+                onNewDataUpdate={(newData) => {
+                  const newestData = updateNewDataForCombination(state.newProductData, newData);
+                  return setState((prevState) => ({ ...prevState, newProductData: newestData }));
+                }}
+              />
             </div>
           )}
           {Object.keys(state.newVariationData).length > 0 && actionsComponent}

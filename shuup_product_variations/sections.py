@@ -74,7 +74,7 @@ class ProductVariationsSection(Section):
             "shuup_admin:shuup_product_variations.product.combinations",
             kwargs={"pk": main_product.pk}
         )
-        product_variations_url = reverse("shuup_admin:shuup_product_variations.variations.list")
+        default_variations_url = reverse("shuup_admin:shuup_product_variations.variations.list")
         variations_url = reverse(
             "shuup_admin:shuup_product_variations.product.variations",
             kwargs={"pk": 9999}
@@ -96,12 +96,13 @@ class ProductVariationsSection(Section):
             "currency_decimal_places": currency.decimal_places,
             "can_create": has_permission(request.user, "shuup_product_variations_can_create_variations"),
             "can_edit": has_permission(request.user, "shuup_product_variations.can_edit_variations"),
-            "max_variations": 5,
+            "max_variations": 3,
+            "max_values": 10,
             "stock_managed": stock_managed,
             "is_simple_supplier_installed": is_simple_supplier_installed,
             "combinations_url": combinations_url,
-            "product_variations_url": product_variations_url,
+            "default_variations_url": default_variations_url,
             "variations_url": variations_url,
             "variable_url": variable_url,
-            "variable_value_url":variable_value_url
+            "variable_value_url": variable_value_url
         }

@@ -10,6 +10,7 @@ import json
 import six
 from django.core.exceptions import ValidationError
 from django.db.models import F, OuterRef, Subquery
+from django.db.models.functions import Coalesce
 from django.db.transaction import atomic
 from django.http import JsonResponse
 from django.utils.encoding import force_text
@@ -60,12 +61,12 @@ class ProductCombinationsView(DetailView):
             })
 
         shop_product = self.object.get_shop_instance(get_shop(request))
-
         supplier = get_supplier(request)
         if not supplier:
             supplier = shop_product.suppliers.first()
 
         if not supplier:
+            print("hiijohoi")
             return JsonResponse({
                 "combinations": [],
                 "product_data": []
@@ -86,8 +87,11 @@ class ProductCombinationsView(DetailView):
             ).annotate(
                 sku=F("product__sku"),
                 price=F("default_price_value"),
-                stock_count=Subquery(
-                    StockCount.objects.filter(product_id=OuterRef("product_id")).values("logical_count")[:1]
+                stock_count=Coalesce(
+                    Subquery(
+                        StockCount.objects.filter(product_id=OuterRef("product_id")).values("logical_count")[:1]
+                    ),
+                    0
                 ),
             ).values("pk", "product_id", "sku", "price", "stock_count")
         else:
