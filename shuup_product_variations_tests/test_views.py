@@ -9,7 +9,7 @@ import pytest
 from django.urls import reverse
 from django.test import Client
 from shuup.testing import factories
-from shuup.core.models import ShopProduct, Product
+from shuup.core.models import ShopProduct, Product, ProductVariationVariable, ProductVariationVariableValue
 from decimal import Decimal
 
 
@@ -127,6 +127,11 @@ def test_update_product_variation(admin_user):
     assert response.status_code == 200
     red_l_shop_product.refresh_from_db()
     assert red_l_shop_product.default_price_value == Decimal("30")
+
+    # the product id must be returned into the response
+    response_data = response.json()
+    assert response_data["combinations"][0]["product_id"]
+    assert response_data["combinations"][0]["sku"] == "red-l2"
 
 
 @pytest.mark.django_db

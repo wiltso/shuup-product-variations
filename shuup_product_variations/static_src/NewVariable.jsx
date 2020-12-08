@@ -18,9 +18,9 @@ const NewVariable = ({ productData, updating, onUpdate }) => {
   });
 
   /*
-        update skus through main state so the updated values are
-        there when the actual update is finalized for these new items
-    */
+    update skus through main state so the updated values are
+    there when the actual update is finalized for these new items
+  */
   function updateSku(event) {
     const newData = { ...state.productData };
     newData.sku = event.target.value;
