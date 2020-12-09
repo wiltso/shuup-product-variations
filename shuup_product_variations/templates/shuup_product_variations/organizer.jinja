@@ -1,0 +1,19 @@
+{% extends "shuup/admin/base.jinja" %}
+
+{% block content %}
+<div class="container-fluid cancel-container">
+    <div class="content-block">
+        <div id="product-variations-organizer-root"></div>
+        <script>window.SHUUP_PRODUCT_VARIATIONS_DATA={{ product_variations|json }};</script>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ shuup_static("shuup_product_variations/shuup_product_variations.js") }}"></script>
+<script>
+(function() {
+    window.ProductVariationsOrganizerApp();
+})();
+</script>
+{% endblock %}

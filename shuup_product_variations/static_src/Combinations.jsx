@@ -13,7 +13,6 @@ import NewVariable from './NewVariable';
 import {
   getNewDataForCombination,
   getProductIdForCombination,
-  updateNewDataForCombination,
 } from './utils';
 
 const getCombinationString = (combination) => (
@@ -30,17 +29,20 @@ const Combinations = ({
 }) => {
   const [state, setState] = useState({
     visibleCombinations: [],
-    productData,
     searchTerms: []
   });
 
+  const combinationLimit = 200;
+
   const getVisibleCombinations = () => {
-    if (combinations.length > 200 || state.searchTerms.length > 0) {
+    if (combinations.length > combinationLimit || state.searchTerms.length > 0) {
       return combinations.filter((item) => {
         let combinationStr = getCombinationString(item)
+        console.log(item)
+        console.log(state.searchTerms)
         return (
           state.searchTerms.length > 0 &&
-          state.searchTerms.every(searchTerm => (combinationStr.includes(searchTerm.value)))
+          state.searchTerms.every(searchTerm => (Object.values(item).includes(searchTerm.value)))
         );
       })
     } else {
@@ -60,9 +62,29 @@ const Combinations = ({
     setState((prevState) => ({ ...prevState, visibleCombinations: getVisibleCombinations() }));
   }, []);
 
+  const combinationCount = combinations.length;
+  let subtitle = null;
+  if (combinationCount > combinationLimit) {
+    subtitle = (
+      <p className="mb-2">
+        {
+          interpolate(
+            gettext(
+              'This product has more than %s combinations.'
+            ),
+            [combinationLimit]
+          ),
+          gettext(
+            'Please find combinations for edit by selecting variable values from the select below.'
+          )
+        }
+      </p>
+    );
+  }
   return (
     <div>
-      <h3 className="mb-4">{ gettext('Product combinations') }</h3>
+      <h3 className="mb-4">{ interpolate(gettext('Product combinations (%s)'), [combinationCount]) }</h3>
+      { subtitle }
       <div className="d-flex flex-column m-3">
         <Select
           placeholder={gettext('Select values for combintations...')}
@@ -80,14 +102,20 @@ const Combinations = ({
         const productId = getProductIdForCombination(productIdToCombinationMap, item);
         let data = {};
         if (productId) {
-          data = state.productData.find((pData) => pData.product_id === parseInt(productId, 10));
+          data = productData.find((pData) => pData.product_id === parseInt(productId, 10));
         } else {
           // We should find it from newProductData
           data = getNewDataForCombination(newProductData, item);
         }
+
+        let key = `${combinationStr}-${newProductData.length}-${productData.length}`;
+        if (data && data.sku) {
+          key += `-${data.sku}-${data.price}-${data.stock_count}`;
+        }
+
         const extraCSS = (idx % 2 ? 'bg-light' : '');
         return (
-          <div className={`d-flex flex-column mb-3 ${extraCSS}`} key={`${combinationStr}-${newProductData.length}`}>
+          <div className={`d-flex flex-column mb-3 ${extraCSS}`} key={key}>
             <h4>{ combinationStr }</h4>
             {productId ? (
               <CurrentVariable
@@ -111,4 +139,5 @@ const Combinations = ({
     </div>
   );
 };
+
 export default Combinations;

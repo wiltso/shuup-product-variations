@@ -58,7 +58,7 @@ class ProductVariationsOrganizer(AdminModule):
             admin_url(
                 r"^shuup_product_variations/organizer/$",
                 "shuup_product_variations.admin.views.organizer.VariationOganizerView",
-                name="shuup_product_variations.product.combinations"
+                name="shuup_product_variations.staff_organizer"
             ),
             admin_url(
                 r"^shuup_product_variations/variations/$",
@@ -82,7 +82,7 @@ class ProductVariationsOrganizer(AdminModule):
             MenuEntry(
                 text=self.name,
                 icon="fa fa-cube",
-                url="shuup_product_variations.product.combinations",
+                url="shuup_admin:shuup_product_variations.staff_organizer",
                 category=SETTINGS_MENU_CATEGORY
             )
         ]

@@ -5,6 +5,7 @@
 #
 # This source code is licensed under the OSL-3.0 license found in the
 # LICENSE file in the root directory of this source tree.
+from django.conf import settings
 from django.urls import reverse
 from django.utils.translation import ugettext as _
 from shuup.admin.base import Section
@@ -55,10 +56,10 @@ class ProductVariationsSection(Section):
     def get_context_data(cls, product, request=None):
         main_product = (product.variation_parent if product.variation_parent else product)
         shop = get_shop(request)
-        shop_product = main_product.get_shop_instance(shop)
+        main_shop_product = main_product.get_shop_instance(shop)
         supplier = get_supplier(request)
         if not supplier:
-            supplier = shop_product.suppliers.first()
+            supplier = main_shop_product.suppliers.first()
 
         is_simple_supplier_installed = has_installed("shuup.simple_supplier")
 
@@ -70,6 +71,10 @@ class ProductVariationsSection(Section):
 
         currency = Currency.objects.filter(code=shop.currency).first()
 
+        main_product_url = reverse(
+            "shuup_admin:shop_product.edit",
+            kwargs={"pk": main_shop_product.pk}
+        )
         combinations_url = reverse(
             "shuup_admin:shuup_product_variations.product.combinations",
             kwargs={"pk": main_product.pk}
@@ -89,15 +94,19 @@ class ProductVariationsSection(Section):
         ).replace("9999", "xxxx")
 
         return {
+            "current_product_id": product.pk,
             "product_id": main_product.pk,
+            "product_url": main_product_url,
             "default_sku": main_product.sku,
-            "default_price": shop_product.default_price_value,
+            "default_price": main_shop_product.default_price_value,
             "currency": currency.code,
             "currency_decimal_places": currency.decimal_places,
+            "sales_unit": product.sales_unit.symbol,
+            "sales_unit_decimal_places": product.sales_unit.decimals,
             "can_create": has_permission(request.user, "shuup_product_variations_can_create_variations"),
             "can_edit": has_permission(request.user, "shuup_product_variations.can_edit_variations"),
-            "max_variations": 3,
-            "max_values": 10,
+            "max_variations": settings.SHUUP_PRODUCT_VARIATIONS_MAX_VARIABLES,
+            "max_values": settings.SHUUP_PRODUCT_VARIATIONS_MAX_VARIABLE_VALUES,
             "stock_managed": stock_managed,
             "is_simple_supplier_installed": is_simple_supplier_installed,
             "combinations_url": combinations_url,

@@ -8,8 +8,10 @@
  */
 import React, { useEffect, useState } from 'react';
 import {
-  ensureDecimalPlaces,
+  ensurePriceDecimalPlaces,
+  ensureStockCountDecimalPlaces
 } from './utils';
+
 
 const NewVariable = ({ productData, updating, onUpdate }) => {
   const [state, setState] = useState({
@@ -24,31 +26,20 @@ const NewVariable = ({ productData, updating, onUpdate }) => {
   function updateSku(event) {
     const newData = { ...state.productData };
     newData.sku = event.target.value;
-    return state.onUpdate(newData);
+    return setState((prevState) => ({ ...prevState, productData: newData }))
   }
 
   function updateDefaultPrice(event) {
     const newData = { ...state.productData };
-    newData.price = ensureDecimalPlaces(event.target.value.replace(',', '.'));
-    return state.onUpdate(newData);
+    newData.price = ensurePriceDecimalPlaces(event.target.value.replace(',', '.'));
+    return setState((prevState) => ({ ...prevState, productData: newData }))
   }
 
   function updateStockCount(event) {
     const newData = { ...state.productData };
-    newData.stock_count = event.target.value;
-    return state.onUpdate(newData);
+    newData.stock_count = ensureStockCountDecimalPlaces(event.target.value.replace(",", "."));
+    return setState((prevState) => ({ ...prevState, productData: newData }))
   }
-
-  useEffect(() => {
-    if (state.productData.price) {
-      const ensuredValue = ensureDecimalPlaces(state.productData.price);
-      if (productData.price !== ensuredValue) {
-        const newData = { ...state.productData };
-        newData.price = ensuredValue;
-        state.onUpdate(newData);
-      }
-    }
-  }, []);
 
   /*
     render the actual row for this new item
@@ -65,27 +56,45 @@ const NewVariable = ({ productData, updating, onUpdate }) => {
           className="form-control"
           value={state.productData.sku}
           onChange={(event) => {updateSku(event)}}
+          onBlur={() => {
+            const productData = { ...state.productData }
+            productData.price = (productData.price === "" ? 0 : productData.price);
+            productData.stock_count = (productData.stock_count === "" ? 0 : productData.stock_count);
+            return state.onUpdate(productData);
+          }}
           disabled={updating}
         />
       </div>
       <div className="d-flex flex-column flex-grow-1 ml-1 mr-1">
-        <small>{ gettext('Default Price') }</small>
+        <small>{ gettext('Default Price') }{ ` (${window.SHUUP_PRODUCT_VARIATIONS_DATA.currency}) ` }</small>
         <input
-          type="text"
+          type="number"
           className="form-control"
           value={state.productData.price}
           onChange={(event) => {updateDefaultPrice(event)}}
+          onBlur={() => {
+            const productData = { ...state.productData }
+            productData.price = (productData.price === "" ? 0 : productData.price);
+            productData.stock_count = (productData.stock_count === "" ? 0 : productData.stock_count);
+            return state.onUpdate(productData);
+          }}
           disabled={updating}
         />
       </div>
-      {state.productData.stock_count !== undefined && (
+      {window.SHUUP_PRODUCT_VARIATIONS_DATA.stock_managed && (
         <div className="d-flex flex-column flex-grow-1">
-          <small>{ gettext('Inventory') }</small>
+          <small>{ gettext('Inventory') }{ ` (${window.SHUUP_PRODUCT_VARIATIONS_DATA.sales_unit}) ` }</small>
           <input
-            type="text"
+            type="number"
             className="form-control"
             value={state.productData.stock_count}
             onChange={(event) => {updateStockCount(event)}}
+            onBlur={() => {
+              const productData = { ...state.productData }
+              productData.price = (productData.price === "" ? 0 : productData.price);
+              productData.stock_count = (productData.stock_count === "" ? 0 : productData.stock_count);
+              return state.onUpdate(productData);
+            }}
             disabled={updating}
           />
         </div>

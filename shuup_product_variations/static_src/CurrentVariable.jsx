@@ -9,7 +9,8 @@
 import React, { useEffect, useState } from 'react';
 import Client from './Client';
 import {
-  ensureDecimalPlaces,
+  ensurePriceDecimalPlaces,
+  ensureStockCountDecimalPlaces
 } from './utils';
 
 const CurrentVariable = ({
@@ -51,11 +52,8 @@ const CurrentVariable = ({
 
   function changeDefaultPrice(event) {
     const newData = { ...state.productData };
-    let newValue = event.target.value;
-    if (newValue === '') {
-      newValue = '0';
-    }
-    newData.price = ensureDecimalPlaces(newValue.replace(',', '.'));
+    let newValue = ensurePriceDecimalPlaces(event.target.value.replace(',', '.'));
+    newData.price = newValue;
     return setState((prevState) => ({
       ...prevState,
       productData: newData,
@@ -65,10 +63,7 @@ const CurrentVariable = ({
 
   function changeStockCount(event) {
     const newData = { ...state.productData };
-    let newValue = event.target.value;
-    if (newValue === '') {
-      newValue = '0';
-    }
+    let newValue = ensureStockCountDecimalPlaces(event.target.value.replace(",", "."));
     newData.stock_count = newValue;
     return setState((prevState) => ({
       ...prevState,
@@ -76,18 +71,6 @@ const CurrentVariable = ({
       changed: true
     }));
   }
-
-  useEffect(() => {
-    const ensuredValue = ensureDecimalPlaces(productData.price || 0);
-    if (productData.price !== ensuredValue) {
-      const newData = { ...state.productData };
-      newData.price = ensuredValue;
-      setState((prevState) => ({
-        ...prevState,
-        productData: newData,
-      }));
-    }
-  }, []);
 
   function getURL() {
     return window.SHUUP_PRODUCT_VARIATIONS_DATA.combinations_url;
@@ -295,6 +278,8 @@ const CurrentVariable = ({
     stockCountHelpText = <small className="text-danger">{ state.stockCountUpdateError }</small>;
   }
 
+  if (!productData) return null;
+
   /*
         render the actual row
     */
@@ -313,9 +298,9 @@ const CurrentVariable = ({
         { skuHelpText }
       </div>
       <div className="d-flex flex-column flex-grow-1 ml-1 mr-1">
-        <small>{ gettext('Default Price') }</small>
+        <small>{ gettext('Default Price') }{ ` (${window.SHUUP_PRODUCT_VARIATIONS_DATA.currency}) ` }</small>
         <input
-          type="text"
+          type="number"
           className="form-control"
           value={state.productData.price}
           onChange={changeDefaultPrice}
@@ -324,11 +309,11 @@ const CurrentVariable = ({
         />
         { defaultPriceHelpText }
       </div>
-      {!!state.productData.stock_count && (
+      {window.SHUUP_PRODUCT_VARIATIONS_DATA.stock_managed && (
         <div className="d-flex flex-column flex-grow-1">
-          <small>{ gettext('Inventory') }</small>
+          <small>{ gettext('Inventory') }{ ` (${window.SHUUP_PRODUCT_VARIATIONS_DATA.sales_unit}) ` }</small>
           <input
-            type="text"
+            type="number"
             className="form-control"
             value={state.productData.stock_count}
             onChange={changeStockCount}

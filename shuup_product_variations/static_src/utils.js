@@ -77,9 +77,16 @@ function round(value, decimalPlaces) {
   return Number(value).toFixed(decimalPlaces);
 }
 
-export function ensureDecimalPlaces(value) {
+export function ensurePriceDecimalPlaces(value) {
   if (countDecimals(value) > window.SHUUP_PRODUCT_VARIATIONS_DATA.currency_decimal_places) {
     return round(value, window.SHUUP_PRODUCT_VARIATIONS_DATA.currency_decimal_places);
+  }
+  return value;
+}
+
+export function ensureStockCountDecimalPlaces(value) {
+  if (countDecimals(value) > window.SHUUP_PRODUCT_VARIATIONS_DATA.sales_unit_decimal_places) {
+    return round(value, window.SHUUP_PRODUCT_VARIATIONS_DATA.sales_unit_decimal_places);
   }
   return value;
 }

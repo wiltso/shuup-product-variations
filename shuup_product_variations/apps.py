@@ -14,6 +14,7 @@ class AppConfig(shuup.apps.AppConfig):
     provides = {
         "admin_module": [
             "shuup_product_variations.admin:ProductVariationsModule",
+            "shuup_product_variations.admin:ProductVariationsOrganizer",
         ],
         "admin_product_section": [
             "shuup_product_variations.sections:ProductVariationsSection",

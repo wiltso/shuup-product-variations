@@ -13,3 +13,11 @@
 SHUUP_PRODUCT_VARIATIONS_VARIATION_UPDATER_SPEC = (
     "shuup_product_variations.admin.variation_updater.VariationUpdater"
 )
+
+#: Maximum variables allwoed
+#:
+SHUUP_PRODUCT_VARIATIONS_MAX_VARIABLES = 3
+
+#: Maximum variable values allowed
+#:
+SHUUP_PRODUCT_VARIATIONS_MAX_VARIABLE_VALUES = 10
