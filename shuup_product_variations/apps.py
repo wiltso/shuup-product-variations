@@ -18,5 +18,8 @@ class AppConfig(shuup.apps.AppConfig):
         ],
         "admin_product_section": [
             "shuup_product_variations.sections:ProductVariationsSection",
+        ],
+        "admin_vendor_product_form_part": [
+
         ]
     }

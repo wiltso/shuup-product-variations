@@ -11,7 +11,6 @@ import React from 'react';
 import ProductVariationsApp from './ProductVariationsApp';
 import OrganizerApp from './OrganizerApp';
 
-
 window.ProductVariationsApp = () => {
   ReactDOM.render(<ProductVariationsApp />, document.getElementById('product-variations-root'));
 };

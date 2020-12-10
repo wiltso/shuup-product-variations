@@ -11,7 +11,6 @@ import CreatableSelect from 'react-select/creatable';
 import Select from 'react-select';
 import Client from './Client';
 
-
 const VariationSelect = ({
     variationData,
     onAddVariable,
@@ -44,14 +43,14 @@ const VariationSelect = ({
           loading: false,
         }));
       })
-      .catch((error) => {
+      .catch(() => {
         setState((prevState) => ({
           ...prevState,
           preSavedVariables: {},
           preSavedVariableValues: {},
           loading: false,
         }));
-      })
+      });
   }, []);
 
   /*
@@ -73,20 +72,20 @@ const VariationSelect = ({
   const SelectComponent = (canCreate ? CreatableSelect : Select);
   const variableOptions = Object.keys(state.preSavedVariables).filter((variableId) => {
     const variableData = state.preSavedVariables[variableId];
-    return (!(Object.keys(variationData).includes(variableData.name)))
+    return (!(Object.keys(variationData).includes(variableData.name)));
   }).map((variableId) => {
     const variableData = state.preSavedVariables[variableId];
-    return {variableId, variableName: variableData.name};
+    return { variableId, variableName: variableData.name };
   });
   return (
     <div>
-      <h3>{ gettext('Add variations') }</h3>
+      <h3>{ gettext('Select variations') }</h3>
       {Object.keys(variationData).map((variableName, idx) => {
         const values = variationData[variableName];
-        const variableId = Object.keys(state.preSavedVariables).filter((variableId) => {
-          const item = state.preSavedVariables[variableId];
+        const variableId = Object.keys(state.preSavedVariables).filter((itemVariableId) => {
+          const item = state.preSavedVariables[itemVariableId];
           return (item.name === variableName);
-        })
+        });
         const valueOptions = (state.preSavedVariableValues[variableId] || []).filter((item) => {
           return (!values.includes(item.name))
         });
@@ -124,9 +123,7 @@ const VariationSelect = ({
           <SelectComponent
             className="flex-grow-1 mr-1"
             placeholder={gettext('Add new variable...')}
-            onChange={(newValue) => {
-                onAddVariable(newValue);
-            }}
+            onChange={(newValue) => onAddVariable(newValue)}
             isDisabled={forceDisabled}
             value={null}
             defaultValue={[]}

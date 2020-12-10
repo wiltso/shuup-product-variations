@@ -3,6 +3,13 @@
 {% block content %}
 <div class="container-fluid cancel-container">
     <div class="content-block">
+        <h1>{% trans %}Predefined variation options{% endtrans %}</h1>
+        <ul>
+            <li>{% trans %}These variables and variable values will be available at product when managing product variations.{% endtrans %}</li>
+            <li>{% trans %}Create or remove variables and variable values using the select elements below.{% endtrans %}</li>
+            <li>{% trans %}Update ordering and translate variables and variable values by selecting "Organize current variations".{% endtrans %}</li>
+        </ul>
+        <br>
         <div id="product-variations-organizer-root"></div>
         <script>window.SHUUP_PRODUCT_VARIATIONS_DATA={{ product_variations|json }};</script>
     </div>

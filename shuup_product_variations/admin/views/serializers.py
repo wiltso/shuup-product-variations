@@ -5,6 +5,7 @@
 #
 # This source code is licensed under the OSL-3.0 license found in the
 # LICENSE file in the root directory of this source tree.
+from django.conf import settings
 from django.db.transaction import atomic
 from django.utils.text import slugify
 from django.utils.translation import ugettext_lazy as _
@@ -17,6 +18,9 @@ from shuup.core.models import (
 from shuup.core.models._product_variation import hash_combination
 from shuup.utils.importing import cached_load
 from shuup_api.fields import FormattedDecimalField
+from shuup_product_variations.models import (
+    VariationVariable, VariationVariableValue
+)
 
 
 class ProductCombinationDeleteSerializer(serializers.Serializer):
@@ -192,3 +196,61 @@ class TranslationSerializer(serializers.Serializer):
                 item.value = self.validated_data["name"]
             item.save()
         return item
+
+
+class VariableVariableSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    values = serializers.ListField(child=serializers.CharField())
+
+    def save(self):
+        name = self.validated_data["name"]
+        variable = VariationVariable.objects.filter(
+            translations__language_code=settings.PARLER_DEFAULT_LANGUAGE_CODE,
+            translations__name=name
+        ).first()
+        if not variable:
+            variable = VariationVariable.objects.create(
+                identifier=slugify(name), name=name,
+            )
+
+        seen_value_ids = set()
+        for value in self.validated_data["values"]:
+            variable_value = VariationVariableValue.objects.filter(
+                variable_id=variable.pk,
+                translations__language_code=settings.PARLER_DEFAULT_LANGUAGE_CODE,
+                translations__value=value
+            ).first()
+            if not variable_value:
+                variable_value = VariationVariableValue.objects.create(
+                    identifier=slugify(value), variable_id=variable.pk, value=value,
+                )
+            seen_value_ids.add(variable_value.pk)
+
+        # Delete unseeen values
+        VariationVariableValue.objects.filter(
+            variable_id=variable.pk
+        ).exclude(pk__in=seen_value_ids).delete()
+
+        return {
+            "id": variable.pk,
+            "name": variable.name,
+            "values": self.validated_data["values"]
+        }
+
+
+class VariableVariableDeleteSerializer(serializers.Serializer):
+    name = serializers.CharField()
+
+    def save(self):
+        name = self.validated_data["name"]
+        variable = VariationVariable.objects.filter(
+            translations__language_code=settings.PARLER_DEFAULT_LANGUAGE_CODE,
+            translations__name=name
+        ).first()
+        if not variable:
+            variable = VariationVariable.objects.create(
+                identifier=slugify(name), name=name,
+            )
+        variable.delete()
+
+        return self.validated_data

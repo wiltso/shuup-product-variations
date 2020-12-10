@@ -8,12 +8,14 @@
 import json
 
 import six
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models import F, OuterRef, Subquery
 from django.db.models.functions import Coalesce
 from django.db.transaction import atomic
 from django.http import JsonResponse
 from django.utils.encoding import force_text
+from django.utils.translation import activate, get_language
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import DetailView
 from shuup.admin.shop_provider import get_shop
@@ -43,6 +45,8 @@ class ProductCombinationsView(DetailView):
         combinations_data = []
         product_data = []
         product_ids = set()
+        old_language = get_language()
+        activate(settings.PARLER_DEFAULT_LANGUAGE_CODE)
 
         for combination in self.object.get_all_available_combinations():
             product_id = combination["result_product_pk"]
@@ -66,7 +70,6 @@ class ProductCombinationsView(DetailView):
             supplier = shop_product.suppliers.first()
 
         if not supplier:
-            print("hiijohoi")
             return JsonResponse({
                 "combinations": [],
                 "product_data": []
@@ -102,6 +105,7 @@ class ProductCombinationsView(DetailView):
                 price=F("default_price_value"),
             ).values("pk", "product_id", "sku", "price")
 
+        activate(old_language)
         return JsonResponse({
             "combinations": combinations_data,
             "product_data": list(product_data)
@@ -140,7 +144,10 @@ class ProductCombinationsView(DetailView):
                 }, status=400)
 
             try:
+                old_language = get_language()
+                activate(settings.PARLER_DEFAULT_LANGUAGE_CODE)
                 serializer.save()
+                activate(old_language)
             except ValidationError as exc:
                 return JsonResponse({
                     "error": exc.message,
@@ -180,7 +187,10 @@ class ProductCombinationsView(DetailView):
             }, status=400)
 
         try:
+            old_language = get_language()
+            activate(settings.PARLER_DEFAULT_LANGUAGE_CODE)
             serializer.save()
+            activate(old_language)
         except ValidationError as exc:
             return JsonResponse({
                 "error": exc.message,

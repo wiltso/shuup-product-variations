@@ -71,10 +71,25 @@ class ProductVariationsSection(Section):
 
         currency = Currency.objects.filter(code=shop.currency).first()
 
-        main_product_url = reverse(
-            "shuup_admin:shop_product.edit",
-            kwargs={"pk": main_shop_product.pk}
-        )
+        if supplier:
+            product_url = reverse(
+                "shuup_admin:shuup_multivendor.products_edit",
+                kwargs={"pk": 9999}
+            ).replace("9999", "xxxx")
+            main_product_url = reverse(
+                "shuup_admin:shuup_multivendor.products_edit",
+                kwargs={"pk": main_shop_product.pk}
+            )
+        else:
+            product_url = reverse(
+                "shuup_admin:shop_product.edit",
+                kwargs={"pk": 9999}
+            ).replace("9999", "xxxx")
+            main_product_url = reverse(
+                "shuup_admin:shop_product.edit",
+                kwargs={"pk": main_shop_product.pk}
+            )
+
         combinations_url = reverse(
             "shuup_admin:shuup_product_variations.product.combinations",
             kwargs={"pk": main_product.pk}
@@ -97,6 +112,7 @@ class ProductVariationsSection(Section):
             "current_product_id": product.pk,
             "product_id": main_product.pk,
             "product_url": main_product_url,
+            "product_url_template": product_url,
             "default_sku": main_product.sku,
             "default_price": main_shop_product.default_price_value,
             "currency": currency.code,

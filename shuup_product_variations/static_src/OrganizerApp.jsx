@@ -7,9 +7,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 import React, { useEffect, useState } from 'react';
+import VariationOrganizer from './VariationOrganizer';
 import VariationSelect from './VariationSelect';
 import Client from './Client';
-
 
 const OrganizerApp = () => {
   const [state, setState] = useState({
@@ -17,7 +17,7 @@ const OrganizerApp = () => {
 
     organizing: false,
     loading: true,
-    updating: false
+    updating: false,
   });
 
   /*
@@ -31,10 +31,8 @@ const OrganizerApp = () => {
         const variableData = {};
         if (preSavedVariableValues) {
           Object.keys(preSavedVariables).forEach((variableId) => {
-            const variableItem = preSavedVariables[variableId]
-            variableData[variableItem.name] = preSavedVariableValues[variableId].map((item) => {
-              return item.name;
-            });
+            const variableItem = preSavedVariables[variableId];
+            variableData[variableItem.name] = preSavedVariableValues[variableId].map((item) => item.name);
           });
           setState((prevState) => ({
             ...prevState,
@@ -43,28 +41,90 @@ const OrganizerApp = () => {
           }));
         }
       })
-      .catch((error) => {
-        console.log(error)
+      .catch(() => {
         setState((prevState) => ({
           ...prevState,
           loading: false,
         }));
-      })
+      });
   }, []);
 
   /*
       Help utils to update the current state based on customer variation updates
     */
   const removeVariationSelect = (variableId, variableName) => {
-    
+    setState((prevState) => ({ ...prevState, updating: true }));
+    Client.request({
+      url: window.SHUUP_PRODUCT_VARIATIONS_DATA.variation_url,
+      method: 'DELETE',
+      data: { name: variableName },
+    })
+      .then(() => {
+        const newVariableData = { ...state.variableData };
+        delete newVariableData[variableName];
+        setState((prevState) => ({
+          ...prevState,
+          variableData: newVariableData,
+          updating: false,
+        }));
+      })
+      .catch(() => {
+        setState((prevState) => ({
+          ...prevState,
+          updating: false,
+        }));
+      });
+    return true;
+    // setState((prevState) => ({ ...prevState, updating: true }));
   };
 
   const addVariationSelectVariable = (selectedOption) => {
-    
+    const selectedValue = selectedOption.label;
+    if (!Object.keys(state.variableData).includes(selectedValue)) {
+      setState((prevState) => ({ ...prevState, updating: true }));
+      Client.post(window.SHUUP_PRODUCT_VARIATIONS_DATA.variation_url, { name: selectedValue, values: [] })
+        .then(() => {
+          const newVariableData = { ...state.variableData };
+          newVariableData[selectedValue] = [];
+          setState((prevState) => ({
+            ...prevState,
+            variableData: newVariableData,
+            updating: false,
+          }));
+        })
+        .catch(() => {
+          setState((prevState) => ({
+            ...prevState,
+            updating: false,
+          }));
+        });
+    }
+    return true;
   };
 
   const updateVariationSelectValues = (variableName, selectedOptions) => {
-  
+    const selectedVariableValues = selectedOptions.map((item) => item.label);
+    setState((prevState) => ({ ...prevState, updating: true }));
+    Client.post(
+      window.SHUUP_PRODUCT_VARIATIONS_DATA.variation_url,
+      { name: variableName, values: selectedVariableValues },
+    )
+      .then(() => {
+        const newVariableData = { ...state.variableData };
+        newVariableData[variableName] = selectedVariableValues;
+        setState((prevState) => ({
+          ...prevState,
+          variableData: newVariableData,
+          updating: false,
+        }));
+      })
+      .catch(() => {
+        setState((prevState) => ({
+          ...prevState,
+          updating: false,
+        }));
+      });
+    return true;
   };
 
   /*
@@ -90,19 +150,21 @@ const OrganizerApp = () => {
           <button
             type="button"
             className="btn btn-delete btn-inverse"
-            onClick={() => { }}
+            onClick={() => {
+              setState((prevState) => ({ ...prevState, organizing: false }));
+            }}
           >
-            { gettext('Go back to current product variations') }
+            { gettext('Go back to select variables and variable values') }
           </button>
         </div>
-        {
-          <VariationOrganizer
-            variationsUrl={window.SHUUP_PRODUCT_VARIATIONS_DATA.variations_url}
-            variableUrlTemplate={window.SHUUP_PRODUCT_VARIATIONS_DATA.variable_url}
-            variableValueUrlTemplate={window.SHUUP_PRODUCT_VARIATIONS_DATA.variable_value_url}
-            onError={() => { }}
-          />
-        }
+        <VariationOrganizer
+          variationsUrl={window.SHUUP_PRODUCT_VARIATIONS_DATA.variation_url}
+          variableUrlTemplate={window.SHUUP_PRODUCT_VARIATIONS_DATA.variable_url}
+          variableValueUrlTemplate={window.SHUUP_PRODUCT_VARIATIONS_DATA.variable_value_url}
+          onError={() => {
+            setState((prevState) => ({ ...prevState, organizing: false }));
+          }}
+        />
       </div>
     );
   }
@@ -114,12 +176,21 @@ const OrganizerApp = () => {
         onAddVariable={addVariationSelectVariable}
         onChangeVariableValues={updateVariationSelectValues}
         onRemoveVariable={removeVariationSelect}
-        allowAddNewVariable={true}
-        canCreate={true}
-        allowEdit={true}
+        allowAddNewVariable
+        canCreate
+        allowEdit
         forceDisabled={state.updating}
         variationsUrl={window.SHUUP_PRODUCT_VARIATIONS_DATA.variations_url}
       />
+      <div className="d-flex flex-column m-3">
+        <button
+          type="button"
+          className="btn btn-primary mb-4"
+          onClick={() => setState((prevState) => ({ ...prevState, organizing: true }))}
+        >
+          { gettext('Organize current variations') }
+        </button>
+      </div>
     </div>
   );
 };

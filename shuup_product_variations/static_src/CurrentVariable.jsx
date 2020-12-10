@@ -6,11 +6,11 @@
  * This source code is licensed under the OSL-3.0 license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Client from './Client';
 import {
   ensurePriceDecimalPlaces,
-  ensureStockCountDecimalPlaces
+  ensureStockCountDecimalPlaces,
 } from './utils';
 
 const CurrentVariable = ({
@@ -52,7 +52,7 @@ const CurrentVariable = ({
 
   function changeDefaultPrice(event) {
     const newData = { ...state.productData };
-    let newValue = ensurePriceDecimalPlaces(event.target.value.replace(',', '.'));
+    const newValue = ensurePriceDecimalPlaces(event.target.value.replace(',', '.'));
     newData.price = newValue;
     return setState((prevState) => ({
       ...prevState,
@@ -63,12 +63,12 @@ const CurrentVariable = ({
 
   function changeStockCount(event) {
     const newData = { ...state.productData };
-    let newValue = ensureStockCountDecimalPlaces(event.target.value.replace(",", "."));
+    const newValue = ensureStockCountDecimalPlaces(event.target.value.replace(',', '.'));
     newData.stock_count = newValue;
     return setState((prevState) => ({
       ...prevState,
       productData: newData,
-      changed: true
+      changed: true,
     }));
   }
 
@@ -298,7 +298,10 @@ const CurrentVariable = ({
         { skuHelpText }
       </div>
       <div className="d-flex flex-column flex-grow-1 ml-1 mr-1">
-        <small>{ gettext('Default Price') }{ ` (${window.SHUUP_PRODUCT_VARIATIONS_DATA.currency}) ` }</small>
+        <small>
+          { gettext('Default Price') }
+          { ` (${window.SHUUP_PRODUCT_VARIATIONS_DATA.currency}) ` }
+        </small>
         <input
           type="number"
           className="form-control"
@@ -311,7 +314,10 @@ const CurrentVariable = ({
       </div>
       {window.SHUUP_PRODUCT_VARIATIONS_DATA.stock_managed && (
         <div className="d-flex flex-column flex-grow-1">
-          <small>{ gettext('Inventory') }{ ` (${window.SHUUP_PRODUCT_VARIATIONS_DATA.sales_unit}) ` }</small>
+          <small>
+            { gettext('Inventory') }
+            { ` (${window.SHUUP_PRODUCT_VARIATIONS_DATA.sales_unit}) ` }
+          </small>
           <input
             type="number"
             className="form-control"
@@ -324,7 +330,7 @@ const CurrentVariable = ({
         </div>
       )}
       <div className="d-flex flex-column align-items-end">
-        <a href={`/sa/products/${state.productData.pk}/#product-variations-section`}>
+        <a href={`${window.SHUUP_PRODUCT_VARIATIONS_DATA.product_url_template.replace("xxxx", state.productData.pk)}#product-variations-section`}>
           <i className="fa fa-edit fa-2x align-self-center ml-2" />
         </a>
         <small className="text-info align-self-center">{ gettext('Edit') }</small>

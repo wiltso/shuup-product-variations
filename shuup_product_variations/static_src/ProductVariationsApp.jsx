@@ -6,7 +6,6 @@
  * This source code is licensed under the OSL-3.0 license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import ReactDOM from 'react-dom';
 import React, { useEffect, useState } from 'react';
 import ProductVariationOrganizer from './ProductVariationOrganizer';
 import VariationSelect from './VariationSelect';
@@ -20,7 +19,6 @@ import {
   updateNewDataForCombination,
 } from './utils';
 import Client from './Client';
-
 
 class CombinationOperationError extends Error {
   constructor(message, errors) {
@@ -157,7 +155,6 @@ const ProductVariationsApp = () => {
       const currentProductIdInData = variationResults.find((item) => {
         return item.product === window.SHUUP_PRODUCT_VARIATIONS_DATA.current_product_id;
       })
-      console.log(currentProductIdInData)
       if (!currentProductIdInData) {
         window.location = window.SHUUP_PRODUCT_VARIATIONS_DATA.product_url;
       }
@@ -307,7 +304,7 @@ const ProductVariationsApp = () => {
     }));
 
     const stopUpdate = () => {
-      setState((prevState) => ({...prevState, updating: true }));
+      setState((prevState) => ({ ...prevState, updating: true }));
       fetchCombinations(window.SHUUP_PRODUCT_VARIATIONS_DATA.combinations_url);
     };
 
@@ -390,7 +387,7 @@ const ProductVariationsApp = () => {
     return (
       <ProductVariationOrganizer
         productId={window.SHUUP_PRODUCT_VARIATIONS_DATA.product_id}
-        onQuit={() => {return setState((prevState) => ({ ...prevState, organizing: false }))}}
+        onQuit={() => setState((prevState) => ({ ...prevState, organizing: false }))}
       />
     );
   }
@@ -408,8 +405,12 @@ const ProductVariationsApp = () => {
     || state.combinationsToDelete.length > 0
   );
   const variationData = (hasNewVariations ? state.newVariationData : state.variationData);
-  const hasAnyVariationsMissingValues = Object.keys(variationData).find((variable) => (variationData[variable].length === 0));
-  const maxVariablesReached = (Object.keys(variationData).length > (window.SHUUP_PRODUCT_VARIATIONS_DATA.max_variations - 1));
+  const hasAnyVariationsMissingValues = (
+    Object.keys(variationData).find((variable) => (variationData[variable].length === 0))
+  );
+  const maxVariablesReached = (
+    Object.keys(variationData).length > (window.SHUUP_PRODUCT_VARIATIONS_DATA.max_variations - 1)
+  );
 
   /*
       Component for actions (shown on top and bottom of all product combinations)
@@ -450,10 +451,10 @@ const ProductVariationsApp = () => {
             className="form-control"
             value={state.defaultPriceValue}
             onChange={(event) => {
-              setState((prevState) => ({ ...prevState, updating: true }))
+              setState((prevState) => ({ ...prevState, updating: true }));
               const defaultPriceValue = ensurePriceDecimalPlaces(event.target.value);
               const newProductData = state.newProductData.map((item) => {
-                return { ...item, price: defaultPriceValue}
+                return { ...item, price: defaultPriceValue }
               })
               return setState((prevState) => ({ ...prevState, newProductData, defaultPriceValue, updating: false }))
             }}
@@ -468,12 +469,14 @@ const ProductVariationsApp = () => {
             className="form-control"
             value={state.defaultStockValue}
             onChange={(event) => {
-              setState((prevState) => ({ ...prevState, updating: true }))
+              setState((prevState) => ({ ...prevState, updating: true }));
               const defaultStockValue = ensureStockCountDecimalPlaces(event.target.value);
               const newProductData = state.newProductData.map((item) => {
-                return { ...item, stock_count: defaultStockValue}
+                return { ...item, stock_count: defaultStockValue }
               })
-              return setState((prevState) => ({ ...prevState, newProductData, defaultStockValue, updating: false }))
+              return setState((prevState) => ({
+                ...prevState, newProductData, defaultStockValue, updating: false,
+              }));
             }}
             disabled={state.updating}
           />
@@ -551,8 +554,8 @@ const ProductVariationsApp = () => {
                 productData={state.productData}
                 newProductData={state.newProductData}
                 onNewDataUpdate={(newData) => {
-                const newestData = updateNewDataForCombination(state.newProductData, newData);
-                return setState((prevState) => ({ ...prevState, newProductData: newestData }));
+                  const newestData = updateNewDataForCombination(state.newProductData, newData);
+                  return setState((prevState) => ({ ...prevState, newProductData: newestData }));
                 }}
               />
             </div>

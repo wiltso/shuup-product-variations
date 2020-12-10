@@ -10,6 +10,7 @@ from collections import defaultdict
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.generic import DetailView
+from shuup.admin.supplier_provider import get_supplier
 from shuup.core.models import (
     Product, ProductVariationVariable, ProductVariationVariableValue
 )
@@ -19,6 +20,13 @@ from .variations_base import VariationBaseDetailView
 
 class ProductVariationsView(DetailView):
     model = Product
+
+    def get_queryset(self):
+        queryset = super(ProductVariationsView, self).get_queryset()
+        supplier = get_supplier(self.request)
+        if supplier:
+            queryset = queryset.filter(shop_products__suppliers=supplier)
+        return queryset
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -55,6 +63,20 @@ class ProductVariationsView(DetailView):
 class ProductVariationVariableDetailView(VariationBaseDetailView):
     model = ProductVariationVariable
 
+    def get_queryset(self):
+        queryset = super(ProductVariationVariableDetailView, self).get_queryset()
+        supplier = get_supplier(self.request)
+        if supplier:
+            queryset = queryset.filter(product__shop_products__suppliers=supplier)
+        return queryset
+
 
 class ProductVariationVariableValueDetailView(VariationBaseDetailView):
     model = ProductVariationVariableValue
+
+    def get_queryset(self):
+        queryset = super(ProductVariationVariableValueDetailView, self).get_queryset()
+        supplier = get_supplier(self.request)
+        if supplier:
+            queryset = queryset.filter(variable__product__shop_products__suppliers=supplier)
+        return queryset

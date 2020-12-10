@@ -33,19 +33,19 @@ const VariationOrganizer = ({
         const variablesData = response.data.variables;
         const valuesData = response.data.values;
         setState((prevState) => ({
-            ...prevState,
-            variablesData,
-            valuesData,
-            loading: false,
+          ...prevState,
+          variablesData,
+          valuesData,
+          loading: false,
         }));
       })
-      .catch((error) => {
+      .catch(() => {
         window.Messages.enqueue({
           text: gettext('Loading organizer failed! Refresh page and try again...'),
           tags: 'error',
         });
         onError();
-      })
+      });
   }, []);
 
   /*
@@ -60,15 +60,16 @@ const VariationOrganizer = ({
       return setState((prevState) => ({
         ...prevState,
         variablesData: newData,
-        changes: true
+        changes: true,
       }));
     }
-  }
+    return true;
+  };
 
   const onUpdateVariableOrder = (id) => {
     if (state.changes) {
       const variableData = state.variablesData[id];
-      Client.post(variableUrlTemplate.replace("xxxx", id), {'ordering': variableData.order})
+      Client.post(variableUrlTemplate.replace('xxxx', id), { ordering: variableData.order })
         .then(() => {
           window.Messages.enqueue({
             text: gettext('Variable saved successfully!'),
@@ -77,17 +78,17 @@ const VariationOrganizer = ({
           setState((prevState) => ({
             ...prevState,
             updating: false,
-            changes: false
+            changes: false,
           }));
         })
-        .catch((error) => {
+        .catch(() => {
           window.Messages.enqueue({
             text: gettext('Saving variable failed! Try again...'),
             tags: 'error',
           });
           setState((prevState) => ({
             ...prevState,
-            updating: false
+            updating: false,
           }));
         });
       return setState((prevState) => ({
@@ -95,6 +96,7 @@ const VariationOrganizer = ({
         updating: true,
       }));
     }
+    return true;
   };
 
   /*
@@ -103,25 +105,21 @@ const VariationOrganizer = ({
 
   const onChangeVariableValueOrder = (variableId, valueId, value) => {
     const newData = { ...state.valuesData };
-    const valueData = newData[variableId].find((item) => {
-      return (item.id == valueId);
-    })
+    const valueData = newData[variableId].find((item) => (item.id === valueId));
     if (valueData.order !== value) {
       valueData.order = value;
       setState((prevState) => ({
         ...prevState,
         valuesData: newData,
-        changes: true
+        changes: true,
       }));
     }
-  }
+  };
 
   const onUpdateVariableValue = (variableId, valueId) => {
     if (state.changes) {
-      const valueData = state.valuesData[variableId].find((item) => {
-        return (item.id == valueId);
-      })
-      Client.post(variableValueUrlTemplate.replace("xxxx", valueId), {'ordering': valueData.order})
+      const valueData = state.valuesData[variableId].find((item) => (item.id === valueId));
+      Client.post(variableValueUrlTemplate.replace('xxxx', valueId), { ordering: valueData.order })
         .then(() => {
           window.Messages.enqueue({
             text: gettext('Variable value saved successfully!'),
@@ -130,10 +128,10 @@ const VariationOrganizer = ({
           setState((prevState) => ({
             ...prevState,
             updating: false,
-            changes: false
+            changes: false,
           }));
         })
-        .catch((error) => {
+        .catch(() => {
           window.Messages.enqueue({
             text: gettext('Saving variable value failed! Try again...'),
             tags: 'error',
@@ -141,7 +139,7 @@ const VariationOrganizer = ({
 
           setState((prevState) => ({
             ...prevState,
-            updating: false
+            updating: false,
           }));
         });
 
@@ -150,6 +148,7 @@ const VariationOrganizer = ({
         updating: true,
       }));
     }
+    return true;
   };
 
   /*
@@ -160,10 +159,10 @@ const VariationOrganizer = ({
       .then((response) => {
         setState((prevState) => ({
           ...prevState,
-          translationsData: response.data
+          translationsData: response.data,
         }));
       })
-      .catch((error) => {
+      .catch(() => {
         window.Messages.enqueue({
           text: gettext('Loading translations failed! Try again...'),
           tags: 'error',
@@ -172,14 +171,14 @@ const VariationOrganizer = ({
           ...prevState,
           translating: false,
           translationsData: {},
-          updateTranslatesUrl: null
+          updateTranslatesUrl: null,
         }));
-      })
+      });
 
     return setState((prevState) => ({
       ...prevState,
       translating: true,
-      updateTranslatesUrl: url
+      updateTranslatesUrl: url,
     }));
   };
 
@@ -189,15 +188,15 @@ const VariationOrganizer = ({
     return setState((prevState) => ({
       ...prevState,
       translationsData: newData,
-      changes: true
+      changes: true,
     }));
-  }
+  };
 
   const onUpdateTranslation = (languageCode) => {
     if (state.changes) {
       Client.post(
         state.updateTranslatesUrl,
-        {'language_code': languageCode, 'name': state.translationsData[languageCode].name}
+        { language_code: languageCode, name: state.translationsData[languageCode].name },
       )
         .then(() => {
           window.Messages.enqueue({
@@ -209,24 +208,25 @@ const VariationOrganizer = ({
             updating: false,
           }));
         })
-        .catch((error) => {
+        .catch(() => {
           window.Messages.enqueue({
             text: gettext('Saving translation failed! Try again...'),
             tags: 'error',
           });
-  
+
           setState((prevState) => ({
             ...prevState,
-            updating: false
+            updating: false,
           }));
         });
-  
+
       return setState((prevState) => ({
         ...prevState,
-        updating: true
+        updating: true,
       }));
     }
-  }
+    return true;
+  };
 
   /*
     loading view
@@ -240,7 +240,7 @@ const VariationOrganizer = ({
       </div>
     );
   }
-  
+
   /*
     translating mode
   */
@@ -256,7 +256,7 @@ const VariationOrganizer = ({
               ...prevState,
               translating: false,
               translationsData: {},
-              updateTranslatesUrl: null
+              updateTranslatesUrl: null,
             }));
           }}
         >
@@ -270,7 +270,7 @@ const VariationOrganizer = ({
         <h3>{ gettext('Translate') }</h3>
         {
           Object.keys(state.translationsData).map((item) => {
-            let languageData = state.translationsData[item];
+            const languageData = state.translationsData[item];
             return (
               <div className="d-flex flex-column m-3" key={item}>
                 <h4 className="control-label">{ languageData.language_name }</h4>
@@ -279,12 +279,8 @@ const VariationOrganizer = ({
                   className="form-control"
                   value={languageData.name}
                   disabled={state.updating}
-                  onChange={(event) => {
-                    return onChangeTranslation(item, event.target.value);
-                  }}
-                  onBlur={(event) => {
-                    return onUpdateTranslation(item);
-                  }}
+                  onChange={(event) => onChangeTranslation(item, event.target.value)}
+                  onBlur={() => onUpdateTranslation(item)}
                 />
               </div>
             );
@@ -302,10 +298,8 @@ const VariationOrganizer = ({
     <div>
       <h3>{ gettext('Update variation order, names and translations') }</h3>
       {Object.keys(
-        state.variablesData
-      ).sort((a, b) => {
-        return state.variablesData[a].order - state.variablesData[b].order;
-      }).map((variableId, idx) => {
+        state.variablesData,
+      ).sort((a, b) => state.variablesData[a].order - state.variablesData[b].order).map((variableId) => {
         const variable = state.variablesData[variableId];
         const values = state.valuesData[variableId];
         return (
@@ -321,7 +315,7 @@ const VariationOrganizer = ({
                   onChange={(event) => {
                     onChangeVariableOrder(variableId, event.target.value);
                   }}
-                  onBlur={(event) => {
+                  onBlur={() => {
                     onUpdateVariableOrder(variableId);
                   }}
                 />
@@ -330,7 +324,7 @@ const VariationOrganizer = ({
                 <button
                   type="button"
                   className="btn btn-primary"
-                  onClick={() => { onTranslate(variableUrlTemplate.replace("xxxx", variableId)) }}
+                  onClick={() => { onTranslate(variableUrlTemplate.replace('xxxx', variableId)); }}
                 >
                   { gettext('Translate') }
                 </button>
@@ -339,42 +333,39 @@ const VariationOrganizer = ({
             <ul>
               {
                 values
-                .sort((a, b) => {
-                  return a.order - b.order;
-                })
-                .map((value, idx) => (
-                  <div className="d-flex flex-column mt-2" key={value.id}>
-                    <h4>{ value.name }</h4>
-                    <div className="d-flex flex-row align-items-end">
-                      <div className="d-flex flex-grow-1 flex-column mr-1">
-                        <small>{ gettext('Ordering') }</small>
-                        <input
-                          type="text"
-                          className="form-control"
-                          value={value.order}
-                          disable={state.updating}
-                          onChange={(event) => {
-                            onChangeVariableValueOrder(variableId, value.id, event.target.value);
-                          }}
-                          onBlur={(event) => {
-                            onUpdateVariableValue(variableId, value.id);
-                          }}
-                        />
-                      </div>
-                      <div className="d-flex flex-column">
-                        <button
-                          type="button"
-                          className="btn btn-primary"
-                          onClick={() => {
-                            onTranslate(variableValueUrlTemplate.replace("xxxx", value.id))
-                          }}
-                        >
-                          { gettext('Translate') }
-                        </button>
+                  .sort((a, b) => (a.order - b.order)).map((value) => (
+                    <div className="d-flex flex-column mt-2" key={value.id}>
+                      <h4>{ value.name }</h4>
+                      <div className="d-flex flex-row align-items-end">
+                        <div className="d-flex flex-grow-1 flex-column mr-1">
+                          <small>{ gettext('Ordering') }</small>
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={value.order}
+                            disable={state.updating}
+                            onChange={(event) => {
+                              onChangeVariableValueOrder(variableId, value.id, event.target.value);
+                            }}
+                            onBlur={() => {
+                              onUpdateVariableValue(variableId, value.id);
+                            }}
+                          />
+                        </div>
+                        <div className="d-flex flex-column">
+                          <button
+                            type="button"
+                            className="btn btn-primary"
+                            onClick={() => {
+                              onTranslate(variableValueUrlTemplate.replace('xxxx', value.id));
+                            }}
+                          >
+                            { gettext('Translate') }
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  ))
               }
             </ul>
           </div>

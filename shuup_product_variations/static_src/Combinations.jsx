@@ -29,7 +29,7 @@ const Combinations = ({
 }) => {
   const [state, setState] = useState({
     visibleCombinations: [],
-    searchTerms: []
+    searchTerms: [],
   });
 
   const combinationLimit = 200;
@@ -37,17 +37,13 @@ const Combinations = ({
   const getVisibleCombinations = () => {
     if (combinations.length > combinationLimit || state.searchTerms.length > 0) {
       return combinations.filter((item) => {
-        let combinationStr = getCombinationString(item)
-        console.log(item)
-        console.log(state.searchTerms)
         return (
-          state.searchTerms.length > 0 &&
-          state.searchTerms.every(searchTerm => (Object.values(item).includes(searchTerm.value)))
+          state.searchTerms.length > 0
+          && state.searchTerms.every((searchTerm) => (Object.values(item).includes(searchTerm.value)))
         );
-      })
-    } else {
-      return combinations;
+      });
     }
+    return combinations;
   }
 
   const getValueOptions = () => {
@@ -72,8 +68,10 @@ const Combinations = ({
             gettext(
               'This product has more than %s combinations.'
             ),
-            [combinationLimit]
-          ),
+            [combinationLimit],
+          )
+        }
+        {
           gettext(
             'Please find combinations for edit by selecting variable values from the select below.'
           )
@@ -89,11 +87,13 @@ const Combinations = ({
         <Select
           placeholder={gettext('Select values for combintations...')}
           isMulti
-          onChange={(selected) => {
-            return setState((prevState) => ({ ...prevState, searchTerms: selected || [] }));
-          }}
+          onChange={(selected) => setState((prevState) => ({ ...prevState, searchTerms: selected || [] }))}
           value={state.searchTerms}
-          options={window._.flatten(getValueOptions()).map((item) => ({ value: item.value, label: `${item.variable}: ${item.value}` }))}
+          options={
+            window._.flatten(
+              getValueOptions(),
+            ).map((item) => ({ value: item.value, label: `${item.variable}: ${item.value}` }))
+          }
           form="combination-search-terms"
         />
       </div>
@@ -128,9 +128,7 @@ const Combinations = ({
               <NewVariable
                 productData={data}
                 updating={state.updating}
-                onUpdate={(newData) => {
-                  return onNewDataUpdate(newData);
-                }}
+                onUpdate={(newData) => onNewDataUpdate(newData)}
               />
             )}
           </div>
