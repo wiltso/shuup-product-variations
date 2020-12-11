@@ -89,7 +89,7 @@ const Combinations = ({
     <div>
       <h3 className="mb-4">{ interpolate(gettext('Product combinations (%s)'), [combinationCount]) }</h3>
       { subtitle }
-      <div className="d-flex flex-column m-3">
+      <div className="d-flex flex-column mb-4 mt-3">
         <small>{ gettext('Filter combinations') }</small>
         <Select
           placeholder={gettext('Select values for combintations...')}
