@@ -138,13 +138,13 @@ const ProductVariationsApp = () => {
     const res = await fetch(url);
     const data = await res.json();
     const variationResults = data.combinations;
-    const productData = data.product_data.map((item) => {
-      return {
+    const productData = data.product_data.map(
+      (item) => ({
         ...item,
         price: ensurePriceDecimalPlaces(item.price),
-        stock_count: ensureStockCountDecimalPlaces(item.stock_count)
-      }
-    });
+        stock_count: ensureStockCountDecimalPlaces(item.stock_count),
+      }),
+    );
 
     /*
       If for some reason child product we are currently at is not
@@ -152,9 +152,9 @@ const ProductVariationsApp = () => {
       and head to parent product page.
      */
     if (window.SHUUP_PRODUCT_VARIATIONS_DATA.product_id !== window.SHUUP_PRODUCT_VARIATIONS_DATA.current_product_id) {
-      const currentProductIdInData = variationResults.find((item) => {
-        return item.product === window.SHUUP_PRODUCT_VARIATIONS_DATA.current_product_id;
-      })
+      const currentProductIdInData = variationResults.find(
+        (item) => (item.product === window.SHUUP_PRODUCT_VARIATIONS_DATA.current_product_id),
+      );
       if (!currentProductIdInData) {
         window.location = window.SHUUP_PRODUCT_VARIATIONS_DATA.product_url;
       }
@@ -391,6 +391,31 @@ const ProductVariationsApp = () => {
       />
     );
   }
+
+  if (state.createProgress) {
+    const progressPercentage = state.createProgress.toFixed(0);
+    return (
+      <div className="text-center m-3">
+        <h3>{gettext('Creating variations...')}</h3>
+        <p className="text-center text-warning">{gettext('Keep this page open to create all variations.')}</p>
+        <div className="progress">
+          <div
+            className="progress-bar"
+            role="progressbar"
+            style={{
+              width: `${progressPercentage}%`,
+            }}
+            aria-valuenow={progressPercentage}
+            aria-valuemin="0"
+            aria-valuemax="100"
+          >
+            {`${progressPercentage}%`}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   /*
     List all combinations and allow user to update SKU, default price and inventory (optional)
 
@@ -416,31 +441,7 @@ const ProductVariationsApp = () => {
       Component for actions (shown on top and bottom of all product combinations)
   */
   let actionsComponent = null;
-  if (state.updating) {
-    if (state.createProgress) {
-      const progressPercentage = state.createProgress.toFixed(0);
-      actionsComponent = (
-        <div className="text-center m-3">
-          <h3>{gettext('Creating variations...')}</h3>
-          <p className="text-center text-warning">{gettext('Keep this page open to create all variations.')}</p>
-          <div className="progress">
-            <div
-              className="progress-bar"
-              role="progressbar"
-              style={{
-                width: `${progressPercentage}%`,
-              }}
-              aria-valuenow={progressPercentage}
-              aria-valuemin="0"
-              aria-valuemax="100"
-            >
-              {`${progressPercentage}%`}
-            </div>
-          </div>
-        </div>
-      );
-    }
-  } else if (hasNewVariations) {
+  if (hasNewVariations) {
     actionsComponent = (
       <div>
         <hr></hr>
@@ -453,10 +454,15 @@ const ProductVariationsApp = () => {
             onChange={(event) => {
               setState((prevState) => ({ ...prevState, updating: true }));
               const defaultPriceValue = ensurePriceDecimalPlaces(event.target.value);
-              const newProductData = state.newProductData.map((item) => {
-                return { ...item, price: defaultPriceValue }
-              })
-              return setState((prevState) => ({ ...prevState, newProductData, defaultPriceValue, updating: false }))
+              const newProductData = state.newProductData.map(
+                (item) => ({ ...item, price: defaultPriceValue }),
+              );
+              return setState((prevState) => ({
+                ...prevState,
+                newProductData,
+                defaultPriceValue,
+                updating: false,
+              }));
             }}
             disabled={state.updating}
           />
@@ -471,9 +477,9 @@ const ProductVariationsApp = () => {
             onChange={(event) => {
               setState((prevState) => ({ ...prevState, updating: true }));
               const defaultStockValue = ensureStockCountDecimalPlaces(event.target.value);
-              const newProductData = state.newProductData.map((item) => {
-                return { ...item, stock_count: defaultStockValue }
-              })
+              const newProductData = state.newProductData.map(
+                (dataItem) => ({ ...dataItem, stock_count: defaultStockValue }),
+              );
               return setState((prevState) => ({
                 ...prevState, newProductData, defaultStockValue, updating: false,
               }));
@@ -531,9 +537,9 @@ const ProductVariationsApp = () => {
         onChangeVariableValues={updateVariationSelectValues}
         onRemoveVariable={removeVariationSelect}
         allowAddNewVariable={
-          window.SHUUP_PRODUCT_VARIATIONS_DATA.can_edit &&
-          !hasAnyVariationsMissingValues &&
-          !maxVariablesReached
+          window.SHUUP_PRODUCT_VARIATIONS_DATA.can_edit
+          && !hasAnyVariationsMissingValues
+          && !maxVariablesReached
         }
         canCreate={window.SHUUP_PRODUCT_VARIATIONS_DATA.can_create}
         allowEdit={window.SHUUP_PRODUCT_VARIATIONS_DATA.can_edit}

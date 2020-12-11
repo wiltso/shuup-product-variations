@@ -64,6 +64,9 @@ export function isCombinationInCombinations(combination, combinations) {
 }
 
 function countDecimals(value) {
+  if (!value) {
+    return 0;
+  }
   if (value.toString().split('.').length < 2) {
     return 0;
   }

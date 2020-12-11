@@ -36,23 +36,33 @@ const Combinations = ({
 
   const getVisibleCombinations = () => {
     if (combinations.length > combinationLimit || state.searchTerms.length > 0) {
-      return combinations.filter((item) => {
-        return (
+      const variablesToValues = [
+        ...new Set(state.searchTerms.map((item) => item.variable)),
+      ].map((variable) => (
+        {
+          variable,
+          values: state.searchTerms.filter((item) => item.variable === variable).map((item) => item.value),
+        }
+      ));
+      return combinations.filter(
+        (item) => (
           state.searchTerms.length > 0
-          && state.searchTerms.every((searchTerm) => (Object.values(item).includes(searchTerm.value)))
-        );
-      });
+          && variablesToValues.every((leItem) => leItem.values.includes(item[leItem.variable]))
+        ),
+      );
     }
     return combinations;
-  }
+  };
 
-  const getValueOptions = () => {
-    return Object.keys(variationData).map((variationName) => {
-      return variationData[variationName].map((value) => {
-        return {variable: variationName, value: value};
-      })
-    })
-  }
+  const getValueOptions = () => (
+    Object.keys(
+      variationData,
+    ).map(
+      (variationName) => (
+        variationData[variationName].map((value) => ({ variable: variationName, value }))
+      ),
+    )
+  );
 
   useEffect(() => {
     setState((prevState) => ({ ...prevState, visibleCombinations: getVisibleCombinations() }));
@@ -65,16 +75,12 @@ const Combinations = ({
       <p className="mb-2">
         {
           interpolate(
-            gettext(
-              'This product has more than %s combinations.'
-            ),
+            gettext('This product has more than %s combinations.'),
             [combinationLimit],
           )
         }
         {
-          gettext(
-            'Please find combinations for edit by selecting variable values from the select below.'
-          )
+          gettext('Please find combinations for edit by selecting variable values from the select below.')
         }
       </p>
     );
@@ -84,6 +90,7 @@ const Combinations = ({
       <h3 className="mb-4">{ interpolate(gettext('Product combinations (%s)'), [combinationCount]) }</h3>
       { subtitle }
       <div className="d-flex flex-column m-3">
+        <small>{ gettext('Filter combinations') }</small>
         <Select
           placeholder={gettext('Select values for combintations...')}
           isMulti
@@ -92,7 +99,7 @@ const Combinations = ({
           options={
             window._.flatten(
               getValueOptions(),
-            ).map((item) => ({ value: item.value, label: `${item.variable}: ${item.value}` }))
+            ).map((item) => ({ value: item.value, variable: item.variable, label: `${item.variable}: ${item.value}` }))
           }
           form="combination-search-terms"
         />

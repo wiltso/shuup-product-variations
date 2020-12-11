@@ -69,7 +69,9 @@ class ProductCombinationsView(DetailView):
         if not supplier:
             supplier = shop_product.suppliers.first()
 
+        print("shit", supplier)
         if not supplier:
+            print("wtf")
             return JsonResponse({
                 "combinations": [],
                 "product_data": []

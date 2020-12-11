@@ -71,7 +71,7 @@ class ProductVariationsSection(Section):
 
         currency = Currency.objects.filter(code=shop.currency).first()
 
-        if supplier:
+        if get_supplier(request) and has_installed("shuup_multivendor"):
             product_url = reverse(
                 "shuup_admin:shuup_multivendor.products_edit",
                 kwargs={"pk": 9999}
@@ -114,7 +114,7 @@ class ProductVariationsSection(Section):
             "product_url": main_product_url,
             "product_url_template": product_url,
             "default_sku": main_product.sku,
-            "default_price": main_shop_product.default_price_value,
+            "default_price": main_shop_product.default_price_value or 0,
             "currency": currency.code,
             "currency_decimal_places": currency.decimal_places,
             "sales_unit": product.sales_unit.symbol,

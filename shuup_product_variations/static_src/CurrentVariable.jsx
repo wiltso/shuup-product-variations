@@ -14,7 +14,10 @@ import {
 } from './utils';
 
 const CurrentVariable = ({
-  combination, productData, updating, onUpdateSuccess,
+  combination,
+  productData,
+  updating,
+  onUpdateSuccess,
 }) => {
   const [state, setState] = useState({
     // statuses for sku input
@@ -42,34 +45,44 @@ const CurrentVariable = ({
     */
   function changeSKU(event) {
     const newData = { ...state.productData };
-    newData.sku = event.target.value;
-    return setState((prevState) => ({
-      ...prevState,
-      productData: newData,
-      changed: true,
-    }));
+    const newValue = event.target.value;
+    if (newData.sku !== newValue) {
+      newData.sku = newValue;
+      return setState((prevState) => ({
+        ...prevState,
+        productData: newData,
+        changed: true,
+      }));
+    }
+    return true;
   }
 
   function changeDefaultPrice(event) {
     const newData = { ...state.productData };
     const newValue = ensurePriceDecimalPlaces(event.target.value.replace(',', '.'));
-    newData.price = newValue;
-    return setState((prevState) => ({
-      ...prevState,
-      productData: newData,
-      changed: true,
-    }));
+    if (newData.price !== newValue) {
+      newData.price = newValue;
+      return setState((prevState) => ({
+        ...prevState,
+        productData: newData,
+        changed: true,
+      }));
+    }
+    return true;
   }
 
   function changeStockCount(event) {
     const newData = { ...state.productData };
     const newValue = ensureStockCountDecimalPlaces(event.target.value.replace(',', '.'));
-    newData.stock_count = newValue;
-    return setState((prevState) => ({
-      ...prevState,
-      productData: newData,
-      changed: true,
-    }));
+    if (newData.stock_count !== newValue) {
+      newData.stock_count = newValue;
+      return setState((prevState) => ({
+        ...prevState,
+        productData: newData,
+        changed: true,
+      }));
+    }
+    return true;
   }
 
   function getURL() {
@@ -104,9 +117,15 @@ const CurrentVariable = ({
           setState((prevState) => ({
             ...prevState,
             updatingSKU: false,
+            skuUpdateError: '',
             skuUpdateSuccess: true,
+            updatingDefaultPrice: false,
+            defaultPriceUpdateError: '',
             defaultPriceUpdateSuccess: false,
+            updatingStockCount: false,
+            stockCountUpdateError: '',
             stockCountUpdateSuccess: false,
+            changed: false,
           }));
         })
         .catch((error) => {
@@ -124,10 +143,15 @@ const CurrentVariable = ({
           setState((prevState) => ({
             ...prevState,
             updatingSKU: false,
-            skuUpdateSuccess: false,
-            defaultPriceUpdateSuccess: false,
-            stockCountUpdateSuccess: false,
             skuUpdateError: errorText,
+            skuUpdateSuccess: false,
+            updatingDefaultPrice: false,
+            defaultPriceUpdateError: '',
+            defaultPriceUpdateSuccess: false,
+            updatingStockCount: false,
+            stockCountUpdateError: '',
+            stockCountUpdateSuccess: false,
+            changed: false,
           }));
         });
 
@@ -136,9 +160,7 @@ const CurrentVariable = ({
         updatingSKU: true,
       }));
     }
-    return setState((prevState) => ({
-      ...prevState,
-    }));
+    return true;
   }
 
   function updateDefaultPrice() {
@@ -150,10 +172,16 @@ const CurrentVariable = ({
           }
           setState((prevState) => ({
             ...prevState,
-            updatingDefaultPrice: false,
+            updatingSKU: false,
+            skuUpdateError: '',
             skuUpdateSuccess: false,
+            updatingDefaultPrice: false,
+            defaultPriceUpdateError: '',
             defaultPriceUpdateSuccess: true,
+            updatingStockCount: false,
+            stockCountUpdateError: '',
             stockCountUpdateSuccess: false,
+            changed: false,
           }));
         })
         .catch((error) => {
@@ -170,11 +198,16 @@ const CurrentVariable = ({
 
           setState((prevState) => ({
             ...prevState,
-            updatingDefaultPrice: false,
+            updatingSKU: false,
+            skuUpdateError: '',
             skuUpdateSuccess: false,
-            defaultPriceUpdateSuccess: false,
-            stockCountUpdateSuccess: false,
+            updatingDefaultPrice: false,
             defaultPriceUpdateError: errorText,
+            defaultPriceUpdateSuccess: false,
+            updatingStockCount: false,
+            stockCountUpdateError: '',
+            stockCountUpdateSuccess: false,
+            changed: false,
           }));
         });
       return setState((prevState) => ({
@@ -182,9 +215,7 @@ const CurrentVariable = ({
         updatingDefaultPrice: true,
       }));
     }
-    return setState((prevState) => ({
-      ...prevState,
-    }));
+    return true;
   }
 
   function updateStockCount() {
@@ -196,10 +227,16 @@ const CurrentVariable = ({
           }
           setState((prevState) => ({
             ...prevState,
-            updatingStockCount: false,
+            updatingSKU: false,
+            skuUpdateError: '',
             skuUpdateSuccess: false,
+            updatingDefaultPrice: false,
+            defaultPriceUpdateError: '',
             defaultPriceUpdateSuccess: false,
+            updatingStockCount: false,
+            stockCountUpdateError: '',
             stockCountUpdateSuccess: true,
+            changed: false,
           }));
         })
         .catch((error) => {
@@ -216,11 +253,16 @@ const CurrentVariable = ({
 
           setState((prevState) => ({
             ...prevState,
-            updatingStockCount: false,
+            updatingSKU: false,
+            skuUpdateError: '',
             skuUpdateSuccess: false,
+            updatingDefaultPrice: false,
+            defaultPriceUpdateError: '',
             defaultPriceUpdateSuccess: false,
-            stockCountUpdateSuccess: false,
+            updatingStockCount: false,
             stockCountUpdateError: errorText,
+            stockCountUpdateSuccess: false,
+            changed: false,
           }));
         });
 
@@ -229,9 +271,7 @@ const CurrentVariable = ({
         updatingStockCount: true,
       }));
     }
-    return setState((prevState) => ({
-      ...prevState,
-    }));
+    return true;
   }
 
   /*
@@ -283,6 +323,7 @@ const CurrentVariable = ({
   /*
         render the actual row
     */
+  const productUrlTemplate = window.SHUUP_PRODUCT_VARIATIONS_DATA.product_url_template;
   return (
     <div className="d-flex flex-row flex-grow-1 align-items-end">
       <div className="d-flex flex-column flex-grow-1">
@@ -293,7 +334,7 @@ const CurrentVariable = ({
           value={state.productData.sku}
           onChange={changeSKU}
           onBlur={updateSKU}
-          disabled={disableInputs}
+          disabled={disableInputs || state.defaultPriceUpdateError || state.stockCountUpdateError}
         />
         { skuHelpText }
       </div>
@@ -308,7 +349,7 @@ const CurrentVariable = ({
           value={state.productData.price}
           onChange={changeDefaultPrice}
           onBlur={updateDefaultPrice}
-          disabled={disableInputs}
+          disabled={disableInputs || state.skuUpdateError || state.stockCountUpdateError}
         />
         { defaultPriceHelpText }
       </div>
@@ -324,13 +365,13 @@ const CurrentVariable = ({
             value={state.productData.stock_count}
             onChange={changeStockCount}
             onBlur={updateStockCount}
-            disabled={disableInputs}
+            disabled={disableInputs || state.skuUpdateError || state.defaultPriceUpdateError}
           />
           { stockCountHelpText }
         </div>
       )}
       <div className="d-flex flex-column align-items-end">
-        <a href={`${window.SHUUP_PRODUCT_VARIATIONS_DATA.product_url_template.replace("xxxx", state.productData.pk)}#product-variations-section`}>
+        <a href={`${productUrlTemplate.replace('xxxx', state.productData.pk)}#product-variations-section`}>
           <i className="fa fa-edit fa-2x align-self-center ml-2" />
         </a>
         <small className="text-info align-self-center">{ gettext('Edit') }</small>

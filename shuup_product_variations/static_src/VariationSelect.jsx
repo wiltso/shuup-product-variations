@@ -80,17 +80,19 @@ const VariationSelect = ({
   return (
     <div>
       <h3>{ gettext('Select variations') }</h3>
-      {Object.keys(variationData).map((variableName, idx) => {
+      {Object.keys(variationData).map((variableName) => {
         const values = variationData[variableName];
-        const variableId = Object.keys(state.preSavedVariables).filter((itemVariableId) => {
+        const variableId = Object.keys(
+          state.preSavedVariables,
+        ).find((itemVariableId) => {
           const item = state.preSavedVariables[itemVariableId];
           return (item.name === variableName);
         });
-        const valueOptions = (state.preSavedVariableValues[variableId] || []).filter((item) => {
-          return (!values.includes(item.name))
-        });
+        const valueOptions = (
+          state.preSavedVariableValues[variableId] || []
+        ).filter((item) => (!values.includes(item.name)));
         return (
-          <div className="d-flex m-3 align-items-end" key={`pending-variations-${idx}`}>
+          <div className="d-flex m-3 align-items-end" key={`pending-variations-${variableName}`}>
             <div className="d-flex flex-grow-1 flex-column">
               <h4 className="control-label">{ variableName }</h4>
               <SelectComponent
