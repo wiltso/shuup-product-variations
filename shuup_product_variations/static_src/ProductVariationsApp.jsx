@@ -304,7 +304,7 @@ const ProductVariationsApp = () => {
     }));
 
     const stopUpdate = () => {
-      setState((prevState) => ({ ...prevState, updating: false, loading: false }));
+      setState((prevState) => ({ ...prevState, loading: true }));
       fetchCombinations(window.SHUUP_PRODUCT_VARIATIONS_DATA.combinations_url);
     };
 
