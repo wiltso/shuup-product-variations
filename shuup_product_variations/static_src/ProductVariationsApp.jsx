@@ -300,11 +300,11 @@ const ProductVariationsApp = () => {
     setState((prevState) => ({
       ...prevState,
       updating: true,
-      createProgress: 0,
+      createProgress: 1,
     }));
 
     const stopUpdate = () => {
-      setState((prevState) => ({ ...prevState, updating: true }));
+      setState((prevState) => ({ ...prevState, updating: false, loading: false }));
       fetchCombinations(window.SHUUP_PRODUCT_VARIATIONS_DATA.combinations_url);
     };
 
@@ -335,7 +335,7 @@ const ProductVariationsApp = () => {
           }));
         });
         window.Messages.enqueue({
-          text: gettext('Combinations created.'),
+          text: gettext('Combinations updated.'),
           tags: 'success',
         });
       } catch (error) {
@@ -396,8 +396,10 @@ const ProductVariationsApp = () => {
     const progressPercentage = state.createProgress.toFixed(0);
     return (
       <div className="text-center m-3">
-        <h3>{gettext('Creating variations...')}</h3>
-        <p className="text-center text-warning">{gettext('Keep this page open to create all variations.')}</p>
+        <h3>{gettext('Updating variations...')}</h3>
+        <p className="text-center text-warning">
+          {gettext('Keep this page open to update all variations correctly.')}
+        </p>
         <div className="progress">
           <div
             className="progress-bar"
