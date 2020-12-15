@@ -300,7 +300,7 @@ const ProductVariationsApp = () => {
     setState((prevState) => ({
       ...prevState,
       updating: true,
-      createProgress: 1,
+      createProgress: 0.01,
     }));
 
     const stopUpdate = () => {
