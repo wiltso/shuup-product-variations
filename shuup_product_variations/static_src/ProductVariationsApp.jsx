@@ -319,6 +319,7 @@ const ProductVariationsApp = () => {
           // TODO: handle
           console.log(error.errors);
         } else {
+          window.Messages.enqueue({ text: gettext('Failed to update combinations.'), tags: 'error' });
           console.error(error);
         }
         stopUpdate();
