@@ -150,18 +150,16 @@ class ProductCombinationsSerializer(serializers.Serializer):
                 # populate the validated data with the product id
                 combination["product_id"] = variation_child.pk
 
-            cheapest_price = (
-                ShopProduct.objects.filter(
-                    product__variation_parent_id=parent_product.pk
-                ).order_by("default_price_value").values_list("default_price_value")[0]
-            )
-            parent_product.default_price_value = cheapest_price
-            parent_shop_product.save()
-
             # Just one supplier limitation. For multiple suppliers we should look into
             # adding shop product supplier strategy to fallback
             for parent_supplier in parent_shop_product.suppliers.all():
                 parent_supplier.shop_products.add(*variation_shop_products)
+
+        cheapest_child = ShopProduct.objects.filter(
+            product__variation_parent_id=parent_product.pk
+        ).order_by("default_price_value").first()
+        parent_shop_product.default_price_value = cheapest_child.default_price_value
+        parent_shop_product.save()
 
         return variations
 

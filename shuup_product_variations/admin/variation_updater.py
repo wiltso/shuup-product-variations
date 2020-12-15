@@ -104,15 +104,8 @@ class VariationUpdater():
             shop=shop,
             product=variation_child
         )[0]
-        price = combination_data.get("price", 0)
-        if not (
-            variation_shop_product.default_price_value and
-            variation_shop_product.default_price_value < price
-        ):
-            variation_shop_product.default_price_value = price
-            variation_shop_product.save()
-
-        if has_installed("shuup_multivendor") and supplier:
+        price = Decimal(combination_data.get("price", "0"))
+        if has_installed("shuup_multivendor"):
             from shuup_multivendor.models import SupplierPrice
             SupplierPrice.objects.update_or_create(
                 shop=shop,
@@ -120,6 +113,17 @@ class VariationUpdater():
                 supplier=supplier,
                 defaults=dict(amount_value=price)
             )
+
+            # If we have multivendor feature on and product is linked to
+            # multiple suppliers we always want to store cheapest price
+            # among suppliers to the shop product default price value
+            cheapest_supplier_price_obj = SupplierPrice.objects.filter(
+                shop=shop, product=variation_child
+            ).order_by("amount_value").first()
+            price = min([cheapest_supplier_price_obj.amount_value, price])
+
+        variation_shop_product.default_price_value = price
+        variation_shop_product.save()
 
         # only update stocks when there is a single supplier
         if supplier and combination_data.get("stock_count"):
