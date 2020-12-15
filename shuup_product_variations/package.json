@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "watch": "node build_resources --watch",
-    "build": "node build_resources --sync && NODE_ENV=production node transpile_resources"
+    "build": "node build_resources --sync"
   },
   "shuup": {
     "static_build": true
