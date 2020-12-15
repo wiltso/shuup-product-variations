@@ -19,6 +19,7 @@ from shuup_product_variations.admin.views.serializers import (
 
 
 class VariationBaseDetailView(DetailView):
+
     def post(self, request, *args, **kwargs):
         instance = self.get_object()
         if not instance:

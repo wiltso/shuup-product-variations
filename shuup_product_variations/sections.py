@@ -41,7 +41,7 @@ class ProductVariationsSection(Section):
         if not supplier:
             return False
 
-        if shop_product.suppliers.count() != 1:
+        if get_supplier(request) is None and shop_product.suppliers.count() != 1:
             return False
 
         return (

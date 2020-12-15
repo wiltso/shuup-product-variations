@@ -13,7 +13,7 @@ from parler.utils.context import switch_language
 from rest_framework import serializers
 from shuup.core.models import (
     Product, ProductVariationResult, ProductVariationVariable,
-    ProductVariationVariableValue
+    ProductVariationVariableValue, ShopProduct
 )
 from shuup.core.models._product_variation import hash_combination
 from shuup.utils.importing import cached_load
@@ -149,6 +149,14 @@ class ProductCombinationsSerializer(serializers.Serializer):
                 variation_shop_products.append(variation_child_shop_product)
                 # populate the validated data with the product id
                 combination["product_id"] = variation_child.pk
+
+            cheapest_price = (
+                ShopProduct.objects.filter(
+                    product__variation_parent_id=parent_product.pk
+                ).order_by("default_price_value").values_list("default_price_value")[0]
+            )
+            parent_product.default_price_value = cheapest_price
+            parent_shop_product.save()
 
             # Just one supplier limitation. For multiple suppliers we should look into
             # adding shop product supplier strategy to fallback

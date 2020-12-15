@@ -15,6 +15,7 @@ from shuup.core.models import (
     ShopProduct, Supplier
 )
 from shuup.core.models._product_variation import hash_combination
+from shuup.utils.djangoenv import has_installed
 
 Combination = NewType("Combination", Dict[str, str])
 
@@ -99,11 +100,26 @@ class VariationUpdater():
                     combination_hash=combination_hash
                 )
 
-        variation_shop_product = ShopProduct.objects.update_or_create(
+        variation_shop_product = ShopProduct.objects.get_or_create(
             shop=shop,
-            product=variation_child,
-            defaults=dict(default_price_value=combination_data.get("price", 0))
+            product=variation_child
         )[0]
+        price = combination_data.get("price", 0)
+        if not (
+            variation_shop_product.default_price_value and
+            variation_shop_product.default_price_value < price
+        ):
+            variation_shop_product.default_price_value = price
+            variation_shop_product.save()
+
+        if has_installed("shuup_multivendor") and supplier:
+            from shuup_multivendor.models import SupplierPrice
+            SupplierPrice.objects.update_or_create(
+                shop=shop,
+                product=variation_child,
+                supplier=supplier,
+                defaults=dict(amount_value=price)
+            )
 
         # only update stocks when there is a single supplier
         if supplier and combination_data.get("stock_count"):

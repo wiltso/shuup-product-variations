@@ -171,6 +171,7 @@ def test_delete_product_variation(admin_user):
     )
     assert response.status_code == 200
     assert product.variation_children.count() == 4
+    assert Product.objects.filter(deleted=True).count() == 0
 
     delete_payload = [
         # can delete using the combination
@@ -188,7 +189,8 @@ def test_delete_product_variation(admin_user):
         content_type="application/json",
     )
     assert response.status_code == 200
-    assert product.variation_children.count() == 2
+    assert product.variation_children.count() == 4
+    assert Product.objects.filter(deleted=True).count() == 2
 
 
 @pytest.mark.django_db
@@ -275,7 +277,7 @@ def test_delete_recover_product_variation(admin_user):
     delete_payload = [{"combination": {"Color": "Red", "Size": "L"}}]
     response = client.delete(view_url, data=delete_payload, content_type="application/json")
     assert response.status_code == 200
-    assert product.variation_children.count() == 1
+    assert product.variation_children.count() == 2  # products are still linked
     assert Product.objects.filter(deleted=True).count() == 1
     assert Product.objects.count() == 3
 
@@ -283,5 +285,5 @@ def test_delete_recover_product_variation(admin_user):
     response = client.post(view_url, data=create_payload, content_type="application/json")
     assert response.status_code == 200
     assert product.variation_children.count() == 2
-    assert Product.objects.count() == 3
     assert Product.objects.filter(deleted=True).count() == 0
+    assert Product.objects.count() == 3

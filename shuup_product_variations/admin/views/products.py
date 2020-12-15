@@ -64,14 +64,13 @@ class ProductCombinationsView(DetailView):
                 }
             })
 
-        shop_product = self.object.get_shop_instance(get_shop(request))
+        shop = get_shop(request)
+        shop_product = self.object.get_shop_instance(shop)
         supplier = get_supplier(request)
         if not supplier:
             supplier = shop_product.suppliers.first()
 
-        print("shit", supplier)
         if not supplier:
-            print("wtf")
             return JsonResponse({
                 "combinations": [],
                 "product_data": []
@@ -85,11 +84,35 @@ class ProductCombinationsView(DetailView):
             supplier.stock_managed
         )
 
-        if stock_managed:
+        is_multivendor_installed = has_installed("shuup_multivendor")
+
+        base_queryset = ShopProduct.objects.filter(
+            shop=shop,
+            product_id__in=product_ids
+        )
+        if stock_managed and is_multivendor_installed:
             from shuup.simple_supplier.models import StockCount
-            product_data = ShopProduct.objects.filter(
-                product_id__in=product_ids
-            ).annotate(
+            from shuup_multivendor.models import SupplierPrice
+            product_data = base_queryset.annotate(
+                sku=F("product__sku"),
+                price=Coalesce(
+                    Subquery(
+                        SupplierPrice.objects.filter(
+                            shop=shop, supplier=supplier, product_id=OuterRef("product_id")
+                        ).values("amount_value")[:1]
+                    ),
+                    0
+                ),
+                stock_count=Coalesce(
+                    Subquery(
+                        StockCount.objects.filter(product_id=OuterRef("product_id")).values("logical_count")[:1]
+                    ),
+                    0
+                ),
+            ).values("pk", "product_id", "sku", "price", "stock_count")
+        elif stock_managed:
+            from shuup.simple_supplier.models import StockCount
+            product_data = base_queryset.annotate(
                 sku=F("product__sku"),
                 price=F("default_price_value"),
                 stock_count=Coalesce(
@@ -99,10 +122,21 @@ class ProductCombinationsView(DetailView):
                     0
                 ),
             ).values("pk", "product_id", "sku", "price", "stock_count")
+        elif is_multivendor_installed:
+            from shuup_multivendor.models import SupplierPrice
+            product_data = base_queryset.annotate(
+                sku=F("product__sku"),
+                price=Coalesce(
+                    Subquery(
+                        SupplierPrice.objects.filter(
+                            shop=shop, supplier=supplier, product_id=OuterRef("product_id")
+                        ).values("amount_value")[:1]
+                    ),
+                    0
+                ),
+            ).values("pk", "product_id", "sku", "price", "stock_count")
         else:
-            product_data = ShopProduct.objects.filter(
-                product_id__in=product_ids
-            ).annotate(
+            product_data = base_queryset.annotate(
                 sku=F("product__sku"),
                 price=F("default_price_value"),
             ).values("pk", "product_id", "sku", "price")

@@ -47,7 +47,10 @@ class ProductVariationsModule(AdminModule):
         return []
 
     def get_extra_permissions(self):
-        return ("shuup_product_variations.can_edit_variations", "shuup_product_variations_can_create_variations")
+        return (
+            "shuup_product_variations.can_edit_variations",
+            "shuup_product_variations_can_create_variations",
+        )
 
 
 class ProductVariationsOrganizer(AdminModule):
