@@ -446,7 +446,7 @@ const ProductVariationsApp = () => {
   if (hasNewVariations) {
     actionsComponent = (
       <div>
-        <hr></hr>
+        <hr />
         <div className="d-flex flex-column flex-grow-1 m-3">
           <small><strong>{ gettext('Default price value') }</strong></small>
           <input
@@ -509,12 +509,16 @@ const ProductVariationsApp = () => {
           <button
             type="button"
             className="btn btn-primary btn-inverse mb-4"
-            onClick={() => setState((prevState) => ({ ...prevState, newVariationData: {} }))}
+            onClick={() => setState((prevState) => ({
+              ...prevState,
+              newVariationData: {},
+              combinationsToDelete: {},
+            }))}
           >
             { gettext('Cancel pending changes to combinations') }
           </button>
         </div>
-        <hr></hr>
+        <hr />
       </div>
     );
   } else {
