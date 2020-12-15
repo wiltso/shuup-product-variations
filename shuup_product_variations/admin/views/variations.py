@@ -99,6 +99,10 @@ class VariationsListView(ListView):
 
         return JsonResponse(serializer.validated_data)
 
+
+class VariationVariableDetailView(VariationBaseDetailView):
+    model = VariationVariable
+
     def delete(self, request, *args, **kwargs):
         try:
             variable_data = json.loads(request.body)
@@ -135,10 +139,6 @@ class VariationsListView(ListView):
                 }, status=400)
 
         return JsonResponse(serializer.validated_data)
-
-
-class VariationVariableDetailView(VariationBaseDetailView):
-    model = VariationVariable
 
 
 class VariationVariableValueDetailView(VariationBaseDetailView):

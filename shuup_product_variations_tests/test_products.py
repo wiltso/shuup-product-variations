@@ -5,12 +5,18 @@
 #
 # This source code is licensed under the OSL-3.0 license found in the
 # LICENSE file in the root directory of this source tree.
+import json
 import pytest
+
+from decimal import Decimal
+
 from django.urls import reverse
 from django.test import Client
 from shuup.testing import factories
-from shuup.core.models import ShopProduct, Product, ProductVariationVariable, ProductVariationVariableValue
-from decimal import Decimal
+from shuup.core.models import (
+    ShopProduct, Product, ProductVariationVariable,
+    ProductVariationVariableValue
+)
 
 
 @pytest.mark.django_db
@@ -44,8 +50,18 @@ def test_create_product_variation(admin_user):
             "stock_count": 2,
         },
     ]
+    url = reverse(
+        "shuup_admin:shuup_product_variations.product.combinations",
+        kwargs=dict(pk=shop_product.pk)
+    )
+    response = client.get(url)
+    assert response.status_code == 200
+    data = json.loads(response.content.decode("utf-8"))
+    assert len(data["combinations"]) == 0
+    assert len(data["product_data"]) == 0
+
     response = client.post(
-        reverse("shuup_admin:shuup_product_variations.product.combinations", kwargs=dict(pk=shop_product.pk)),
+        url,
         data=payload,
         content_type="application/json",
     )
@@ -66,6 +82,20 @@ def test_create_product_variation(admin_user):
 
     assert supplier.get_stock_status(red_l_combination["result_product_pk"]).logical_count == 20
     assert supplier.get_stock_status(blue_s_combination["result_product_pk"]).logical_count == 2
+
+    response = client.get(url)
+    assert response.status_code == 200
+    data = json.loads(response.content.decode("utf-8"))
+    assert len(data["combinations"]) == 2
+    assert len(data["product_data"]) == 2
+
+    shop_product.suppliers.clear()  # Without supplier nothing is returned
+    response = client.get(url)
+    assert response.status_code == 200
+    data = json.loads(response.content.decode("utf-8"))
+    assert len(data["combinations"]) == 0
+    assert len(data["product_data"]) == 0
+
 
 
 @pytest.mark.django_db
