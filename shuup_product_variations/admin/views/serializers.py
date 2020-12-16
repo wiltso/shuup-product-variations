@@ -12,8 +12,8 @@ from django.utils.translation import ugettext_lazy as _
 from parler.utils.context import switch_language
 from rest_framework import serializers
 from shuup.core.models import (
-    Product, ProductVariationResult, ProductVariationVariable,
-    ProductVariationVariableValue, ShopProduct
+    Product, ProductVariationLinkStatus, ProductVariationResult,
+    ProductVariationVariable, ProductVariationVariableValue, ShopProduct
 )
 from shuup.core.models._product_variation import hash_combination
 from shuup.utils.importing import cached_load
@@ -174,9 +174,40 @@ class ProductCombinationsDeleteSerializer(serializers.Serializer):
 
         with atomic():
             variation_updater = cached_load("SHUUP_PRODUCT_VARIATIONS_VARIATION_UPDATER_SPEC")()
+            hash_to_variable_value = dict()
+
+            for combination in parent_product.get_all_available_combinations():
+                hash_to_variable_value[combination["hash"]] = combination["variable_to_value"]
+
             for combination in self.validated_data["combinations"]:
                 if combination["variation_product"]:
-                    variation_updater.delete_variation(shop, supplier, parent_product, combination["variation_product"])
+                    variation_updater.delete_variation(
+                        shop,
+                        supplier,
+                        parent_product,
+                        combination["variation_product"],
+                    )
+
+            # discover which variables and values are being used
+            visible_combinations_hashes = ProductVariationResult.objects.filter(
+                product=parent_product,
+                status=ProductVariationLinkStatus.VISIBLE
+            ).values_list("combination_hash", flat=True)
+            used_variables_ids = set()
+            used_values_ids = set()
+
+            for used_hash in visible_combinations_hashes:
+                for variable, value in hash_to_variable_value.get(used_hash, {}).items():
+                    used_variables_ids.add(variable.pk)
+                    used_values_ids.add(value.pk)
+
+            # delete all variables and values not being used
+            ProductVariationVariableValue.objects.filter(
+                variable__product=parent_product
+            ).exclude(pk__in=used_values_ids).delete()
+            ProductVariationVariable.objects.filter(
+                product=parent_product
+            ).exclude(pk__in=used_variables_ids).delete()
 
 
 class OrderingSerializer(serializers.Serializer):

@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Enter here all the changes made to the development version
 
+### Fixed
+
+- Make sure to delete variables and values not being used
+
 ## [1.0.0] - 2020-12-16
 
 ### Added
