@@ -300,11 +300,11 @@ const ProductVariationsApp = () => {
     setState((prevState) => ({
       ...prevState,
       updating: true,
-      createProgress: 0,
+      createProgress: 0.01,
     }));
 
     const stopUpdate = () => {
-      setState((prevState) => ({ ...prevState, updating: true }));
+      setState((prevState) => ({ ...prevState, loading: true }));
       fetchCombinations(window.SHUUP_PRODUCT_VARIATIONS_DATA.combinations_url);
     };
 
@@ -319,6 +319,7 @@ const ProductVariationsApp = () => {
           // TODO: handle
           console.log(error.errors);
         } else {
+          window.Messages.enqueue({ text: gettext('Failed to update combinations.'), tags: 'error' });
           console.error(error);
         }
         stopUpdate();
@@ -335,7 +336,7 @@ const ProductVariationsApp = () => {
           }));
         });
         window.Messages.enqueue({
-          text: gettext('Combinations created.'),
+          text: gettext('Combinations updated.'),
           tags: 'success',
         });
       } catch (error) {
@@ -396,8 +397,10 @@ const ProductVariationsApp = () => {
     const progressPercentage = state.createProgress.toFixed(0);
     return (
       <div className="text-center m-3">
-        <h3>{gettext('Creating variations...')}</h3>
-        <p className="text-center text-warning">{gettext('Keep this page open to create all variations.')}</p>
+        <h3>{gettext('Updating variations...')}</h3>
+        <p className="text-center text-warning">
+          {gettext('Keep this page open to update all variations correctly.')}
+        </p>
         <div className="progress">
           <div
             className="progress-bar"
@@ -444,7 +447,7 @@ const ProductVariationsApp = () => {
   if (hasNewVariations) {
     actionsComponent = (
       <div>
-        <hr></hr>
+        <hr />
         <div className="d-flex flex-column flex-grow-1 m-3">
           <small><strong>{ gettext('Default price value') }</strong></small>
           <input
@@ -507,12 +510,16 @@ const ProductVariationsApp = () => {
           <button
             type="button"
             className="btn btn-primary btn-inverse mb-4"
-            onClick={() => setState((prevState) => ({ ...prevState, newVariationData: {} }))}
+            onClick={() => setState((prevState) => ({
+              ...prevState,
+              newVariationData: {},
+              combinationsToDelete: {},
+            }))}
           >
             { gettext('Cancel pending changes to combinations') }
           </button>
         </div>
-        <hr></hr>
+        <hr />
       </div>
     );
   } else {

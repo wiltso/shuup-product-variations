@@ -48,6 +48,18 @@ class ProductCombinationsView(DetailView):
         old_language = get_language()
         activate(settings.PARLER_DEFAULT_LANGUAGE_CODE)
 
+        shop = get_shop(request)
+        shop_product = self.object.get_shop_instance(shop)
+        supplier = get_supplier(request)
+        if not supplier:
+            supplier = shop_product.suppliers.first()
+
+        if not supplier:
+            return JsonResponse({
+                "combinations": [],
+                "product_data": []
+            })
+
         for combination in self.object.get_all_available_combinations():
             product_id = combination["result_product_pk"]
             if not product_id:
@@ -62,18 +74,6 @@ class ProductCombinationsView(DetailView):
                     force_text(k): force_text(v)
                     for k, v in six.iteritems(combination["variable_to_value"])
                 }
-            })
-
-        shop = get_shop(request)
-        shop_product = self.object.get_shop_instance(shop)
-        supplier = get_supplier(request)
-        if not supplier:
-            supplier = shop_product.suppliers.first()
-
-        if not supplier:
-            return JsonResponse({
-                "combinations": [],
-                "product_data": []
             })
 
         is_simple_supplier_installed = has_installed("shuup.simple_supplier")
