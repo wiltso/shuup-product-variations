@@ -1,4 +1,4 @@
-[![PyPI](https://img.shields.io/pypi/v/shuup-product-variations.svg)](https://img.shields.io/pypi/v/shuup-product-variations.svg)
+[![PyPI](https://img.shields.io/pypi/v/shuup-product-variations.svg)](https://pypi.org/project/shuup-product-variations/)
 
 # Shuup Product Variations
 
