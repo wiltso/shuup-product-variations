@@ -1,7 +1,4 @@
-.. image::
-   https://img.shields.io/pypi/v/shuup-product-variations.svg
-   :alt: PyPI
-   :target: https://pypi.org/project/shuup-product-variations/
+[![PyPI](https://img.shields.io/pypi/v/shuup-product-variations.svg)](https://img.shields.io/pypi/v/shuup-product-variations.svg)
 
 # Shuup Product Variations
 
