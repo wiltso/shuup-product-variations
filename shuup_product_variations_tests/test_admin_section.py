@@ -32,7 +32,7 @@ def test_product_admin_section_visibility(rf, admin_user):
 
     request = apply_request_middleware(rf.get("/"), user=admin_user)
     request.shop = None
-    assert not ProductVariationsSection.visible_for_object(product, request, shop=shop)
+    assert not ProductVariationsSection.visible_for_object(product, request)
 
 
 @pytest.mark.django_db
