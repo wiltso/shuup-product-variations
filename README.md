@@ -14,7 +14,7 @@ Business Address: Iso-Roobertinkatu 20-22, 00120 HELSINKI, Finland.
 
 ## License
 
-Shuup Stripe addon is published under Open Software License version 3.0 (OSL-3.0).
+Shuup Product Variations addon is published under Open Software License version 3.0 (OSL-3.0).
 See the LICENSE file distributed with Shuup.
 
 ### Documentation
