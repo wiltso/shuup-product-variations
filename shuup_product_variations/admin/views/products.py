@@ -134,7 +134,7 @@ class ProductCombinationsView(DetailView):
                     ),
                     0
                 ),
-            ).values("pk", "product_id", "sku", "price", "stock_count")
+            ).values("pk", "product_id", "sku", "price")
         else:
             product_data = base_queryset.annotate(
                 sku=F("product__sku"),
