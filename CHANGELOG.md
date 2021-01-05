@@ -8,10 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Enter here all the changes made to the development version
 
+## [1.0.4] - 2021-01-05
+
+- Check for Shuup multivendor
+
 ## [1.0.3] - 2020-12-22
 
 - Fix bug with combination query when stock not enabled
-
 
 ## [1.0.1] - 2020-12-16
 
