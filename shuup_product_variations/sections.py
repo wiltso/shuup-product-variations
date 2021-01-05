@@ -71,7 +71,11 @@ class ProductVariationsSection(Section):
 
         currency = Currency.objects.filter(code=shop.currency).first()
 
-        if get_supplier(request) and has_installed("shuup_multivendor"):
+        if (
+            get_supplier(request) and
+            has_installed("shuup_multivendor") and
+            settings.SHUUP_MULTIVENDOR_ENABLE_CUSTOM_PRODUCTS
+        ):
             product_url = reverse(
                 "shuup_admin:shuup_multivendor.products_edit",
                 kwargs={"pk": 9999}
