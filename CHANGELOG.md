@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Enter here all the changes made to the development version
 
+### Added
+
+- Add all swedish translation and translated them
+
 ## [1.0.4] - 2021-01-05
 
 - Check for Shuup multivendor
