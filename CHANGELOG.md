@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Enter here all the changes made to the development version
 
+## [1.0.6] - 2021-02-18
+
 ### Added
 
 - When all variations are removed, turn product mode to Normal
