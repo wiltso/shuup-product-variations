@@ -9,157 +9,161 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-02-18 13:04+0000\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"PO-Revision-Date: 2021-02-18 13:04+ZONE\n"
+"Last-Translator: Eemeli Ranta <eemeli.ranta@shuup.com>, 2021\n"
+"Language-Team: Finnish (Finland) (https://www.transifex.com/shuup/teams/55306/fi_FI/)\n"
+"Language: fi_FI\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 #, javascript-format
 msgid "This product has more than %s combinations."
-msgstr ""
+msgstr "Tällä tuotteella on enemmän kun %s yhdistelmää."
 
 msgid ""
 "Please find combinations for edit by selecting variable values from the "
 "select below."
 msgstr ""
+"Etsi yhdistelmät muokattavaksi valitsemalla arvot"
+"valitsimesta alapuolelta"
 
 #, javascript-format
 msgid "Product combinations (%s)"
-msgstr ""
+msgstr "Tuote yhdistelmät (%s)"
 
 msgid "Filter combinations"
-msgstr ""
+msgstr "Rajaa yhdistelmiä"
 
 msgid "Select values for combinations..."
-msgstr ""
+msgstr "Valitse arvot yhdistelmille..."
 
 msgid "Updating SKU failed"
-msgstr ""
+msgstr "Tuotenumeron päivittäminen epäonnistui"
 
 msgid "Updating price failed"
-msgstr ""
+msgstr "Hinnan päivittäminen epäonnistui"
 
 msgid "Updating..."
-msgstr ""
+msgstr "Päivitetään..."
 
 msgid "Updated!"
-msgstr ""
+msgstr "Päivitetty!"
 
 msgid "SKU"
-msgstr ""
+msgstr "Tuotenumero"
 
 msgid "Default Price"
-msgstr ""
+msgstr "Vakio hinta"
 
 msgid "Inventory"
-msgstr ""
+msgstr "Varasto"
 
 msgid "Edit"
-msgstr ""
+msgstr "Muokkaa"
 
 msgid "Loading..."
-msgstr ""
+msgstr "Lataa..."
 
 msgid "Go back to select variables and variable values"
-msgstr ""
+msgstr "Palaa takaisin valitaksesi muuttujat ja muuttujien arvot"
 
 msgid "Organize current variations"
-msgstr ""
+msgstr "Järjestele nykyiset variaatiot"
 
 msgid "Go back to current product variations"
-msgstr ""
+msgstr "Palaa takaisin nykyisiin tuote variaatioihin"
 
 msgid "Failed to delete combinations"
-msgstr ""
+msgstr "Yhdistelmien poisto epäonnistui"
 
 msgid "Failed to create combinations"
-msgstr ""
+msgstr "Yhdistelmien luonti epäonnistui"
 
 msgid "Maximum variable values reached."
-msgstr ""
+msgstr "Muuttujien enimmäismäärä saavutettu."
 
 msgid "Failed to update combinations."
-msgstr ""
+msgstr "Yhdistelmien päivittäminen epäonnistui."
 
 msgid "Combinations updated."
-msgstr ""
+msgstr "Yhdistelmät päivitetty."
 
 msgid "Updating variations..."
-msgstr ""
+msgstr "Päivitetään variaatioita..."
 
 msgid "Keep this page open to update all variations correctly."
-msgstr ""
+msgstr "Pidä tämä sivu avoinna jotta kaikki variaatiot päivittyvät oikein."
 
 msgid "Default price value"
-msgstr ""
+msgstr "Vakio hinta"
 
 msgid "Changing this value updates the prices for all new combinations."
-msgstr ""
+msgstr "Tämän arvon muuttaminen päivittää kaikkien uusien yhdistelmien hinnan."
 
 msgid "Default stock count"
-msgstr ""
+msgstr "Vakio varastolukumäärä"
 
 msgid "Changing this value updates the stocks for all new combinations."
-msgstr ""
+msgstr "Tämän arvon muuttaminen päivittää kaikkien uusien yhdistelmien varastolukumäärän."
 
 msgid "Confirm pending changes to combinations"
-msgstr ""
+msgstr "Vahvista yhdistelmiin tehdyt muutokset"
 
 msgid ""
 "After new combinations are confirmed you can do more editing for each new "
 "item."
 msgstr ""
+"Uuden yhdistelmien vahvistamisen jälkeen viut tehdä lisää muutoksia"
+"jokaiselle kohteelle."
 
 msgid "Cancel pending changes to combinations"
-msgstr ""
+msgstr "Peruuta yhdistelmiin tehdyt muutokset"
 
 msgid "Make sure all variables has at least one value selected."
-msgstr ""
+msgstr "Varmista että kaikilla muuttujilla on vähintään yksi arvo valittuna."
 
 msgid "Loading organizer failed! Refresh page and try again..."
-msgstr ""
+msgstr "Järjesteliän lataus epäonnistui! Päivitä sivu ja kokeile uudestaan..."
 
 msgid "Variable saved successfully!"
-msgstr ""
+msgstr "Muuttuja tallennettu onnistuneesti!"
 
 msgid "Saving variable failed! Try again..."
-msgstr ""
+msgstr "Muuttujan tallentaminen epäonnistui! Kokeile uudestaan..."
 
 msgid "Variable value saved successfully!"
-msgstr ""
+msgstr "Muuttujan arvo tallennettu onnistuneesti!"
 
 msgid "Saving variable value failed! Try again..."
-msgstr ""
+msgstr "Muuttujan arvon tallentaminen epäonnistui! Kokeile uudestaan..."
 
 msgid "Loading translations failed! Try again..."
-msgstr ""
+msgstr "Käännösten lataus epäonnistui! Kokeile uudestaan..."
 
 msgid "Translation saved successfully!"
-msgstr ""
+msgstr "Käännös tallennettu onnistuneesti!"
 
 msgid "Saving translation failed! Try again..."
-msgstr ""
+msgstr "Käännöksen tallentaminen epäönnistui! Kokeile uudestaan..."
 
 msgid "Go back to ordering variations"
-msgstr ""
+msgstr "Palaa variaatioiden järjestelyihin"
 
 msgid "Translate"
-msgstr ""
+msgstr "Käännä"
 
 msgid "Update variation order, names and translations"
-msgstr ""
+msgstr "Päivitä variaatio järjestys, nimet tai käännökset"
 
 msgid "Ordering"
-msgstr ""
+msgstr "Järjestys"
 
 msgid "Select variations"
-msgstr ""
+msgstr "Valitse variaatiot"
 
 msgid "Select values for variable..."
-msgstr ""
+msgstr "Valitse arvot muuttujalle..."
 
 msgid "Add new variable..."
-msgstr ""
+msgstr "Lisää uusi muuttuja..."
