@@ -208,6 +208,8 @@ class ProductCombinationsDeleteSerializer(serializers.Serializer):
             ProductVariationVariable.objects.filter(
                 product=parent_product
             ).exclude(pk__in=used_variables_ids).delete()
+            parent_product.verify_mode()
+            parent_product.save()
 
 
 class OrderingSerializer(serializers.Serializer):
