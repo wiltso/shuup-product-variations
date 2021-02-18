@@ -341,7 +341,7 @@ const CurrentVariable = ({
       <div className="d-flex flex-column flex-grow-1 ml-1 mr-1">
         <small>
           { gettext('Default Price') }
-          { ` (${window.SHUUP_PRODUCT_VARIATIONS_DATA.currency}) ` }
+          { ' (' + window.SHUUP_PRODUCT_VARIATIONS_DATA.currency + ') ' }
         </small>
         <input
           type="number"
@@ -357,7 +357,7 @@ const CurrentVariable = ({
         <div className="d-flex flex-column flex-grow-1">
           <small>
             { gettext('Inventory') }
-            { ` (${window.SHUUP_PRODUCT_VARIATIONS_DATA.sales_unit}) ` }
+            { ' (' + window.SHUUP_PRODUCT_VARIATIONS_DATA.sales_unit + ') ' }
           </small>
           <input
             type="number"
@@ -371,7 +371,7 @@ const CurrentVariable = ({
         </div>
       )}
       <div className="d-flex flex-column align-items-end">
-        <a href={`${productUrlTemplate.replace('xxxx', state.productData.pk)}#product-variations-section`}>
+        <a href={productUrlTemplate.replace('xxxx', state.productData.pk) + '#product-variations-section'}>
           <i className="fa fa-edit fa-2x align-self-center ml-2" />
         </a>
         <small className="text-info align-self-center">{ gettext('Edit') }</small>

@@ -202,9 +202,9 @@ const ProductVariationsApp = () => {
     getCombinations(variationData, 0, [], {}).forEach((item) => {
       const productId = getProductIdForCombination(state.productIdToCombinationMap, item);
       if (!productId) {
-        const newSKUCombinationPart = Object.keys(item).map((k) => `${k}-${item[k]}`).join('-').toLowerCase()
+        const newSKUCombinationPart = Object.keys(item).map((k) => k + '-' + item[k]).join('-').toLowerCase()
           .replace(' ', '-');
-        const newSKU = `${window.SHUUP_PRODUCT_VARIATIONS_DATA.default_sku}-${newSKUCombinationPart}`;
+        const newSKU = window.SHUUP_PRODUCT_VARIATIONS_DATA.default_sku + '-' + newSKUCombinationPart;
         newProductData.push({
           combination: item,
           sku: newSKU,
@@ -406,13 +406,13 @@ const ProductVariationsApp = () => {
             className="progress-bar"
             role="progressbar"
             style={{
-              width: `${progressPercentage}%`,
+              width: progressPercentage + '%',
             }}
             aria-valuenow={progressPercentage}
             aria-valuemin="0"
             aria-valuemax="100"
           >
-            {`${progressPercentage}%`}
+            {progressPercentage + '%'}
           </div>
         </div>
       </div>

@@ -16,7 +16,7 @@ import {
 } from './utils';
 
 const getCombinationString = (combination) => (
-  Object.keys(combination).map((k) => `${k}: ${combination[k]}`).join(', ')
+  Object.keys(combination).map((k) => k + ': ' + combination[k]).join(', ')
 );
 
 const Combinations = ({
@@ -92,14 +92,14 @@ const Combinations = ({
       <div className="d-flex flex-column mb-4 mt-3">
         <small>{ gettext('Filter combinations') }</small>
         <Select
-          placeholder={gettext('Select values for combintations...')}
+          placeholder={gettext('Select values for combinations...')}
           isMulti
           onChange={(selected) => setState((prevState) => ({ ...prevState, searchTerms: selected || [] }))}
           value={state.searchTerms}
           options={
             window._.flatten(
               getValueOptions(),
-            ).map((item) => ({ value: item.value, variable: item.variable, label: `${item.variable}: ${item.value}` }))
+            ).map((item) => ({ value: item.value, variable: item.variable, label: item.variable+ ': ' + item.value }))
           }
           form="combination-search-terms"
         />
@@ -115,14 +115,14 @@ const Combinations = ({
           data = getNewDataForCombination(newProductData, item);
         }
 
-        let key = `${combinationStr}-${newProductData.length}-${productData.length}`;
+        let key = combinationStr + '-' + newProductData.length + '-' + productData.length;
         if (data && data.sku) {
-          key += `-${data.sku}-${data.price}-${data.stock_count}`;
+          key += '-' + data.sku + '-' + data.price + '-' + data.stock_count;
         }
 
         const extraCSS = (idx % 2 ? 'bg-light' : '');
         return (
-          <div className={`d-flex flex-column mb-3 ${extraCSS}`} key={key}>
+          <div className={'d-flex flex-column mb-3 ' + extraCSS} key={key}>
             <h4>{ combinationStr }</h4>
             {productId ? (
               <CurrentVariable
