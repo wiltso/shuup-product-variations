@@ -20,6 +20,7 @@ module.exports = {
   rules: {
     'no-console': 'off',
     'max-len': ['error', { code: 120, tabWidth: 2 }],
+    'linebreak-style': 0,
   },
   globals: {
     gettext: false,

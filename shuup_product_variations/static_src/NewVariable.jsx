@@ -67,7 +67,7 @@ const NewVariable = ({ productData, updating, onUpdate }) => {
       <div className="d-flex flex-column flex-grow-1 ml-1 mr-1">
         <small>
           { gettext('Default Price') }
-          { ` (${window.SHUUP_PRODUCT_VARIATIONS_DATA.currency}) ` }
+          { ' (' + window.SHUUP_PRODUCT_VARIATIONS_DATA.currency + ') ' }
         </small>
         <input
           type="number"
@@ -87,7 +87,7 @@ const NewVariable = ({ productData, updating, onUpdate }) => {
         <div className="d-flex flex-column flex-grow-1">
           <small>
             { gettext('Inventory') }
-            { ` (${window.SHUUP_PRODUCT_VARIATIONS_DATA.sales_unit}) ` }
+            { ' (' + window.SHUUP_PRODUCT_VARIATIONS_DATA.sales_unit + ') ' }
           </small>
           <input
             type="number"

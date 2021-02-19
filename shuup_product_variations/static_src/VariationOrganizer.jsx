@@ -303,7 +303,7 @@ const VariationOrganizer = ({
         const variable = state.variablesData[variableId];
         const values = state.valuesData[variableId];
         return (
-          <div className="d-flex flex-column m-3" key={`variations-${variableId}`}>
+          <div className="d-flex flex-column m-3" key={'variations-' + variableId}>
             <h4>{ variable.name }</h4>
             <div className="d-flex flex-row align-items-end">
               <div className="d-flex flex-grow-1 flex-column mr-1">
