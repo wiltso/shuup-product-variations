@@ -10,6 +10,7 @@ Enter here all the changes made to the development version
 
 ### Added
 
+- Add Swedish translations
 - Add Finnish translations
 
 ## [1.0.6] - 2021-02-18
