@@ -19,147 +19,151 @@ msgstr ""
 
 #, javascript-format
 msgid "This product has more than %s combinations."
-msgstr ""
+msgstr "Denna produkt har mer än %s kombinationer."
 
 msgid ""
 "Please find combinations for edit by selecting variable values from the "
 "select below."
 msgstr ""
+"Vänligen hitta kombinationer för redigering genom att välja variabelvärden från "
+"markeringen nedan. "
 
 #, javascript-format
 msgid "Product combinations (%s)"
-msgstr ""
+msgstr "Produktkombinationer (%s)"
 
 msgid "Filter combinations"
-msgstr ""
+msgstr "Filtrera kombinationer"
 
 msgid "Select values for combinations..."
-msgstr ""
+msgstr "Välj värden för kombinationer ... "
 
 msgid "Updating SKU failed"
-msgstr ""
+msgstr "Uppdateringen av SKU misslyckades"
 
 msgid "Updating price failed"
-msgstr ""
+msgstr "Uppdateringen av priset misslyckades"
 
 msgid "Updating..."
-msgstr ""
+msgstr "Uppdaterar..."
 
 msgid "Updated!"
-msgstr ""
+msgstr "Uppdaterad!"
 
 msgid "SKU"
-msgstr ""
+msgstr "SKU"
 
 msgid "Default Price"
-msgstr ""
+msgstr "Standardpris"
 
 msgid "Inventory"
-msgstr ""
+msgstr "Lager"
 
 msgid "Edit"
-msgstr ""
+msgstr "Redigera"
 
 msgid "Loading..."
-msgstr ""
+msgstr "Laddar..."
 
 msgid "Go back to select variables and variable values"
-msgstr ""
+msgstr "Gå tillbaka för att välja variabler och variabelvärden"
 
 msgid "Organize current variations"
-msgstr ""
+msgstr "Organisera aktuella variationer"
 
 msgid "Go back to current product variations"
-msgstr ""
+msgstr "Gå tillbaka till aktuella produktvarianter"
 
 msgid "Failed to delete combinations"
-msgstr ""
+msgstr "Det gick inte att ta bort kombinationerna"
 
 msgid "Failed to create combinations"
-msgstr ""
+msgstr "Det gick inte att skapa kombinationerna"
 
 msgid "Maximum variable values reached."
-msgstr ""
+msgstr "Maximala variabelvärden har uppnått."
 
 msgid "Failed to update combinations."
-msgstr ""
+msgstr "Det gick inte att uppdatera kombinationerna."
 
 msgid "Combinations updated."
-msgstr ""
+msgstr "Kombinationerna är uppdaterade."
 
 msgid "Updating variations..."
-msgstr ""
+msgstr "Uppdaterar variationer..."
 
 msgid "Keep this page open to update all variations correctly."
-msgstr ""
+msgstr "Håll den här sidan öppen för att uppdatera alla variationer korrekt."
 
 msgid "Default price value"
-msgstr ""
+msgstr "Standardprisvärde"
 
 msgid "Changing this value updates the prices for all new combinations."
-msgstr ""
+msgstr "Om du ändrar detta värde uppdateras priserna för alla nya kombinationer."
 
 msgid "Default stock count"
-msgstr ""
+msgstr "Standardantal på lager"
 
 msgid "Changing this value updates the stocks for all new combinations."
-msgstr ""
+msgstr "Om du ändrar detta värde uppdateras lagren för alla nya kombinationer."
 
 msgid "Confirm pending changes to combinations"
-msgstr ""
+msgstr "Bekräfta väntande ändringar av kombinationer"
 
 msgid ""
 "After new combinations are confirmed you can do more editing for each new "
 "item."
 msgstr ""
+"Efter att nya kombinationer har bekräftats kan du redigera mer för varje nytt "
+"objekt."
 
 msgid "Cancel pending changes to combinations"
-msgstr ""
+msgstr "Avbryt väntande ändringar av kombinationer"
 
 msgid "Make sure all variables has at least one value selected."
-msgstr ""
+msgstr "Se till att alla variabler har minst ett värde valt "
 
 msgid "Loading organizer failed! Refresh page and try again..."
-msgstr ""
+msgstr "Det gick inte att ladda arrangören! Uppdatera sidan och försök igen ..."
 
 msgid "Variable saved successfully!"
-msgstr ""
+msgstr "Variabel sparades!"
 
 msgid "Saving variable failed! Try again..."
-msgstr ""
+msgstr "Variabeln sparningen misslyckades! Försök igen..."
 
 msgid "Variable value saved successfully!"
-msgstr ""
+msgstr "Variabelt värde sparades!"
 
 msgid "Saving variable value failed! Try again..."
-msgstr ""
+msgstr "Det gick inte att spara variabelvärdet! Försök igen..."
 
 msgid "Loading translations failed! Try again..."
-msgstr ""
+msgstr "Det gick inte att ladda översättningar! Försök igen..."
 
 msgid "Translation saved successfully!"
-msgstr ""
+msgstr "Översättningen sparades!"
 
 msgid "Saving translation failed! Try again..."
-msgstr ""
+msgstr "Det gick inte att spara översättningen! Försök igen..."
 
 msgid "Go back to ordering variations"
-msgstr ""
+msgstr "Gå tillbaka till variations ordningen"
 
 msgid "Translate"
-msgstr ""
+msgstr "Översätt"
 
 msgid "Update variation order, names and translations"
-msgstr ""
+msgstr "Uppdatera variantordning, namn och översättningar"
 
 msgid "Ordering"
-msgstr ""
+msgstr "Ordning"
 
 msgid "Select variations"
-msgstr ""
+msgstr "Välj variationer"
 
 msgid "Select values for variable..."
-msgstr ""
+msgstr "Välj värden för variabeln..."
 
 msgid "Add new variable..."
-msgstr ""
+msgstr "Lägg till en ny variabel..."
