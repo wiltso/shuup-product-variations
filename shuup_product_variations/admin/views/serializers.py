@@ -79,7 +79,7 @@ class ProductCombinationSerializer(serializers.Serializer):
     combination = serializers.DictField()
     sku = serializers.CharField()
     price = FormattedDecimalField(required=False)
-    stock_count = serializers.IntegerField(required=False)
+    stock_count = serializers.DecimalField(max_digits=36, decimal_places=9, required=False)
 
 
 class ProductCombinationsSerializer(serializers.Serializer):
