@@ -126,7 +126,7 @@ class VariationUpdater():
         variation_shop_product.save()
 
         # only update stocks when there is a single supplier
-        if supplier and combination_data.get("stock_count"):
+        if supplier and combination_data.get("stock_count") is not None:
             new_stock_total = Decimal(combination_data["stock_count"])
             current_stock_status = supplier.get_stock_status(variation_child.pk)
             supplier.adjust_stock(variation_child.pk, new_stock_total - current_stock_status.logical_count)
