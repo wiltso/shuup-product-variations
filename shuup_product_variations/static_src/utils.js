@@ -63,17 +63,17 @@ export function isCombinationInCombinations(combination, combinations) {
   return combinations.find((item) => window._.isEqual(combination, item));
 }
 
-function countDecimals(value) {
-  if (!value) {
-    return 0;
-  }
-  if (value.toString().split('.').length < 2) {
-    return 0;
-  }
-  if (Math.floor(value) === value) {
-    return 0;
-  }
-  return value.toString().split('.')[1].length || 0;
+function countDecimals(num) {
+  // https://stackoverflow.com/questions/10454518/javascript-how-to-retrieve-the-number-of-decimals-of-a-string-number
+  const match = ('' + num).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
+  if (!match) { return 0; }
+  return Math.max(
+    0,
+    // Number of digits right of decimal point.
+    (match[1] ? match[1].length : 0)
+    // Adjust for scientific notation.
+    - (match[2] ? +match[2] : 0),
+  );
 }
 
 function round(value, decimalPlaces) {
