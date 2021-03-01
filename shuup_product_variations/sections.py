@@ -7,7 +7,7 @@
 # LICENSE file in the root directory of this source tree.
 from django.conf import settings
 from django.urls import reverse
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 from shuup.admin.base import Section
 from shuup.admin.shop_provider import get_shop
 from shuup.admin.supplier_provider import get_supplier

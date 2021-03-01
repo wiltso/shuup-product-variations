@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Enter here all the changes made to the development version
 
+### Fixed
+
+- Use `ugettext_lazy` instead of `ugettext`
+
 ## [1.0.8] - 2021-02-23
 
 - Allow updating stock to zero
