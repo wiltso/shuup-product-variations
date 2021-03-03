@@ -1,6 +1,6 @@
 {
   "name": "shuup-product-variations",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -14,14 +14,13 @@
   "license": "Proprietary",
   "private": true,
   "dependencies": {
-    "@babel/cli": "^7.2.3",
-    "@babel/core": "^7.4.0",
-    "@babel/preset-env": "^7.4.2",
+    "@babel/cli": "7.12.7",
+    "@babel/core": "7.12.7",
+    "@babel/preset-env": "7.12.7",
     "autoprefixer": "^9.6.1",
     "axios": "^0.20.0",
-    "babel-preset-env": "^1.7.0",
-    "babel-preset-minify": "^0.5.0",
-    "less": "^3.8.1",
+    "babel-preset-minify": "^0.5.1",
+    "less": "3.10.3",
     "parcel-bundler": "^1.12.4",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
