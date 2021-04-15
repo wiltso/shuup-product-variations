@@ -1,0 +1,90 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+# Translators:
+# Melanie Missbach <melanie@buyhappy.de>, 2021
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-01-25 09:26+0000\n"
+"PO-Revision-Date: 2021-01-25 09:31+0000\n"
+"Last-Translator: Melanie Missbach <melanie@buyhappy.de>, 2021\n"
+"Language-Team: German (https://www.transifex.com/shuup/teams/55306/de/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: de\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Product Variations"
+msgstr "Produktvarianten"
+
+msgid "Product Variations Organizer"
+msgstr "Produktvarianten-Verwaltung"
+
+#, python-brace-format
+msgid "The SKU '{sku}' is already being used."
+msgstr "Die Artikelnummer \"{sku}\" wird bereits verwendet."
+
+msgid "Product not found"
+msgstr "Artikel nicht gefunden."
+
+msgid "Invalid content data"
+msgstr "Ungültige Inhaltsangaben"
+
+msgid "Either combination or SKU must be informed."
+msgstr ""
+"Entweder die Kombination oder die Artikelnummer müssen angegeben werden."
+
+msgid "Variable not found"
+msgstr "Variable nicht gefunden"
+
+msgid "name"
+msgstr "Name"
+
+msgid "variation variable"
+msgstr "Produktvarianten-Variable"
+
+msgid "variation variables"
+msgstr "Produktvarianten-Variablen"
+
+msgid "value"
+msgstr "Wert"
+
+msgid "variation value"
+msgstr "Produktvarianten-Wert"
+
+msgid "variation values"
+msgstr "Produktvarianten-Werte"
+
+msgid "Product variations"
+msgstr "Produktvarianten"
+
+msgid "Predefined variation options"
+msgstr "Vordefinierte Varianten-Möglichkeiten"
+
+msgid ""
+"These variables and variable values will be available at product when "
+"managing product variations."
+msgstr ""
+"Diese Variablen und Variablenwerte stehen bei der Verwaltung von "
+"Produktvarianten zur Verfügung."
+
+msgid ""
+"Create or remove variables and variable values using the select elements "
+"below."
+msgstr ""
+"Erstelle oder entferne Variablen und Variablenwerte mit den unten stehenden "
+"Auswahlelementen."
+
+msgid ""
+"Update ordering and translate variables and variable values by selecting "
+"\"Organize current variations\"."
+msgstr ""
+"Aktualisiere die Reihenfolge und übersetze Variablen und Variablenwerte, "
+"indem Du \"Aktuelle Varianten organisieren\" wählst."
