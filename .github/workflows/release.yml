@@ -72,7 +72,7 @@ jobs:
         run: git config core.commentchar '@'
 
       - name: "Commit changes"
-        uses: EndBug/add-and-commit@v7
+        uses: EndBug/add-and-commit@f1d41def84174d477303087e8d31ffaf97c26008  # v7.1.1 tag
         with:
           add: '["setup.cfg", "pyproject.toml", "CHANGELOG.md"]'
           message: 'Release ${{ github.event.inputs.version }}'
@@ -82,7 +82,7 @@ jobs:
         run: git config --unset core.commentchar
 
       - name: "Create a GitHub release"
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@91409e712cf565ce9eff10c87a8d1b11b81757ae  # v1 tag
         with:
           tag_name: v${{ github.event.inputs.version }}
           name: v${{ github.event.inputs.version }}
@@ -94,7 +94,7 @@ jobs:
         run: sed -i 's/^version *=.*$/&.post+gitver/' setup.cfg
 
       - name: "Commit changes"
-        uses: EndBug/add-and-commit@v7
+        uses: EndBug/add-and-commit@f1d41def84174d477303087e8d31ffaf97c26008  # v7.1.1 tag
         with:
           add: 'setup.cfg'
           message: 'Post-release update for ${{ github.event.inputs.version }}'
