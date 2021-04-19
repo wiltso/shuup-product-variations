@@ -91,7 +91,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Bump setup.cfg version to post+gitver"
-        run: sed -i 's/^version *=.*$/&.post.gitver/' setup.cfg
+        run: sed -i 's/^version *=.*$/&.post+gitver/' setup.cfg
 
       - name: "Commit changes"
         uses: EndBug/add-and-commit@v7
