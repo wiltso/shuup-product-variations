@@ -11,9 +11,7 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.views.generic import DetailView
 from shuup.admin.supplier_provider import get_supplier
-from shuup.core.models import (
-    Product, ProductVariationVariable, ProductVariationVariableValue
-)
+from shuup.core.models import Product, ProductVariationVariable, ProductVariationVariableValue
 
 from .variations_base import VariationBaseDetailView
 
@@ -33,31 +31,26 @@ class ProductVariationsView(DetailView):
         variables_id_to_data = {}
         values_data = defaultdict(list)
         for variable_id, variable_order, variable_name, value_id, value_order, value_name in (
-            ProductVariationVariableValue.objects
-                .language(settings.PARLER_DEFAULT_LANGUAGE_CODE)
-                .filter(
-                    variable__product_id=self.object.id,
-                    variable__translations__language_code=settings.PARLER_DEFAULT_LANGUAGE_CODE,
-                    translations__language_code=settings.PARLER_DEFAULT_LANGUAGE_CODE
-                )
-                .values_list(
-                    "variable_id",
-                    "variable__ordering",
-                    "variable__translations__name",
-                    "pk",
-                    "ordering",
-                    "translations__value"
-                ).distinct()
+            ProductVariationVariableValue.objects.language(settings.PARLER_DEFAULT_LANGUAGE_CODE)
+            .filter(
+                variable__product_id=self.object.id,
+                variable__translations__language_code=settings.PARLER_DEFAULT_LANGUAGE_CODE,
+                translations__language_code=settings.PARLER_DEFAULT_LANGUAGE_CODE,
+            )
+            .values_list(
+                "variable_id",
+                "variable__ordering",
+                "variable__translations__name",
+                "pk",
+                "ordering",
+                "translations__value",
+            )
+            .distinct()
         ):
             variables_id_to_data[variable_id] = {"name": variable_name, "order": variable_order}
-            values_data[variable_id].append({
-                "id": value_id, "order": value_order, "name":  value_name
-            })
+            values_data[variable_id].append({"id": value_id, "order": value_order, "name": value_name})
 
-        return JsonResponse({
-            "variables": variables_id_to_data,
-            "values": values_data
-        })
+        return JsonResponse({"variables": variables_id_to_data, "values": values_data})
 
 
 class ProductVariationVariableDetailView(VariationBaseDetailView):

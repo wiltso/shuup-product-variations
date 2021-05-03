@@ -10,27 +10,28 @@ from typing import Dict, NewType, Optional
 
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
-from shuup.core.models import (
-    Product, ProductVariationLinkStatus, ProductVariationResult, Shop,
-    ShopProduct, Supplier
-)
+from shuup.core.models import Product, ProductVariationLinkStatus, ProductVariationResult, Shop, ShopProduct, Supplier
 from shuup.core.models._product_variation import hash_combination
 from shuup.utils.djangoenv import has_installed
 
 Combination = NewType("Combination", Dict[str, str])
 
 
-class VariationUpdater():
-    def update_or_create_variation(self, shop: Shop, supplier: Optional[Supplier],  # noqa (C901)
-                                   parent_shop_product: ShopProduct, combination_data: Dict):
-        sku = combination_data["sku"]   # type: str
-        combination_instance_data = combination_data["combination_data"]   # type: Combination
+class VariationUpdater:
+    def update_or_create_variation(  # noqa (C901)
+        self,
+        shop: Shop,
+        supplier: Optional[Supplier],
+        parent_shop_product: ShopProduct,
+        combination_data: Dict,
+    ):
+        sku = combination_data["sku"]  # type: str
+        combination_instance_data = combination_data["combination_data"]  # type: Combination
         combination_hash = hash_combination(combination_instance_data["combination_pks"])
 
         # search the product by the combination hash
         variation_result = ProductVariationResult.objects.filter(
-            product=parent_shop_product.product,
-            combination_hash=combination_hash
+            product=parent_shop_product.product, combination_hash=combination_hash
         ).first()
 
         # there is already a variation value with a product set,
@@ -41,10 +42,7 @@ class VariationUpdater():
             # validate whether the SKU is being used on a different product
             sku_being_used = Product.objects.filter(sku=sku).exclude(pk=variation_child.pk).exists()
             if sku_being_used:
-                raise ValidationError(
-                    _("The SKU '{sku}' is already being used.").format(sku=sku),
-                    code="sku-exists"
-                )
+                raise ValidationError(_("The SKU '{sku}' is already being used.").format(sku=sku), code="sku-exists")
 
             # the result is not visible, make it visible
             if variation_result.status != ProductVariationLinkStatus.VISIBLE:
@@ -69,25 +67,22 @@ class VariationUpdater():
                 # this product is not deleted, raise an error
                 if not existing_product.deleted:
                     raise ValidationError(
-                        _("The SKU '{sku}' is already being used.").format(sku=sku),
-                        code="sku-exists"
+                        _("The SKU '{sku}' is already being used.").format(sku=sku), code="sku-exists"
                     )
 
                 # the product is deleted, let's recover it
                 # but make sure we have a supplier set for it that match the parent product
                 # OR the product doesn't have a ShopProduct attached
-                variation_shop_product = ShopProduct.objects.filter(
-                    product=existing_product,
-                    shop=shop
-                ).first()
-                if (not variation_shop_product
-                        or (supplier and variation_shop_product.suppliers.filter(pk=supplier.pk).exists())):
+                variation_shop_product = ShopProduct.objects.filter(product=existing_product, shop=shop).first()
+                if not variation_shop_product or (
+                    supplier and variation_shop_product.suppliers.filter(pk=supplier.pk).exists()
+                ):
                     variation_child = recover_deleted_product(
                         shop=shop,
                         parent_product=parent_shop_product.product,
                         deleted_product=existing_product,
                         combination=combination_instance_data["combination_names"],
-                        combination_hash=combination_hash
+                        combination_hash=combination_hash,
                     )
 
             if not variation_child:
@@ -97,29 +92,24 @@ class VariationUpdater():
                     parent_product=parent_shop_product.product,
                     sku=sku,
                     combination=combination_instance_data["combination_names"],
-                    combination_hash=combination_hash
+                    combination_hash=combination_hash,
                 )
 
-        variation_shop_product = ShopProduct.objects.get_or_create(
-            shop=shop,
-            product=variation_child
-        )[0]
+        variation_shop_product = ShopProduct.objects.get_or_create(shop=shop, product=variation_child)[0]
         price = Decimal(combination_data.get("price", "0"))
         if has_installed("shuup_multivendor"):
             from shuup_multivendor.models import SupplierPrice
+
             SupplierPrice.objects.update_or_create(
-                shop=shop,
-                product=variation_child,
-                supplier=supplier,
-                defaults=dict(amount_value=price)
+                shop=shop, product=variation_child, supplier=supplier, defaults=dict(amount_value=price)
             )
 
             # If we have multivendor feature on and product is linked to
             # multiple suppliers we always want to store cheapest price
             # among suppliers to the shop product default price value
-            cheapest_supplier_price_obj = SupplierPrice.objects.filter(
-                shop=shop, product=variation_child
-            ).order_by("amount_value").first()
+            cheapest_supplier_price_obj = (
+                SupplierPrice.objects.filter(shop=shop, product=variation_child).order_by("amount_value").first()
+            )
             price = min([cheapest_supplier_price_obj.amount_value, price])
 
         variation_shop_product.default_price_value = price
@@ -133,35 +123,23 @@ class VariationUpdater():
 
         return (variation_child, variation_shop_product)
 
-    def delete_variation(self, shop: Shop, supplier: Optional[Supplier],
-                         parent_product: Product, variation: Product):
+    def delete_variation(self, shop: Shop, supplier: Optional[Supplier], parent_product: Product, variation: Product):
         variation.soft_delete()
-        ProductVariationResult.objects.filter(
-            product=parent_product,
-            result=variation
-        ).update(
+        ProductVariationResult.objects.filter(product=parent_product, result=variation).update(
             status=ProductVariationLinkStatus.INVISIBLE
         )
 
 
 def get_variation_product_name(parent_product: Product, combination: Combination):
     variation_part = [
-        "{variable_value}".format(
-            variable_value=variable_value
-        )
-        for (variable, variable_value) in combination.items()
+        "{variable_value}".format(variable_value=variable_value) for (variable, variable_value) in combination.items()
     ]
-    return "{name} - {variation_part}".format(
-        name=parent_product.name,
-        variation_part=" - ".join(variation_part)
-    )
+    return "{name} - {variation_part}".format(name=parent_product.name, variation_part=" - ".join(variation_part))
 
 
-def recover_deleted_product(parent_product: Product,
-                            shop: Shop,
-                            deleted_product: Product,
-                            combination: Combination,
-                            combination_hash: str) -> Product:
+def recover_deleted_product(
+    parent_product: Product, shop: Shop, deleted_product: Product, combination: Combination, combination_hash: str
+) -> Product:
     deleted_product.name = get_variation_product_name(parent_product, combination)
     deleted_product.tax_class = parent_product.tax_class
     deleted_product.sales_unit = parent_product.sales_unit
@@ -178,11 +156,9 @@ def recover_deleted_product(parent_product: Product,
     return deleted_product
 
 
-def create_variation_product(parent_product: Product,
-                             shop: Shop,
-                             sku: str,
-                             combination: Combination,
-                             combination_hash: str) -> Product:
+def create_variation_product(
+    parent_product: Product, shop: Shop, sku: str, combination: Combination, combination_hash: str
+) -> Product:
     variation_child = Product(
         name=get_variation_product_name(parent_product, combination),
         tax_class=parent_product.tax_class,

@@ -44,17 +44,11 @@ class ProductVariationsSection(Section):
         if get_supplier(request) is None and shop_product.suppliers.count() != 1:
             return False
 
-        return (
-            product.mode in [
-                ProductMode.VARIABLE_VARIATION_PARENT,
-                ProductMode.VARIATION_CHILD,
-                ProductMode.NORMAL
-            ]
-        )
+        return product.mode in [ProductMode.VARIABLE_VARIATION_PARENT, ProductMode.VARIATION_CHILD, ProductMode.NORMAL]
 
     @classmethod
     def get_context_data(cls, product, request=None):
-        main_product = (product.variation_parent if product.variation_parent else product)
+        main_product = product.variation_parent if product.variation_parent else product
         shop = get_shop(request)
         main_shop_product = main_product.get_shop_instance(shop)
         supplier = get_supplier(request)
@@ -64,52 +58,38 @@ class ProductVariationsSection(Section):
         is_simple_supplier_installed = has_installed("shuup.simple_supplier")
 
         stock_managed = bool(
-            is_simple_supplier_installed and
-            supplier.module_identifier == "simple_supplier" and
-            supplier.stock_managed
+            is_simple_supplier_installed and supplier.module_identifier == "simple_supplier" and supplier.stock_managed
         )
 
         currency = Currency.objects.filter(code=shop.currency).first()
 
         if (
-            get_supplier(request) and
-            has_installed("shuup_multivendor") and
-            settings.SHUUP_MULTIVENDOR_ENABLE_CUSTOM_PRODUCTS
+            get_supplier(request)
+            and has_installed("shuup_multivendor")
+            and settings.SHUUP_MULTIVENDOR_ENABLE_CUSTOM_PRODUCTS
         ):
-            product_url = reverse(
-                "shuup_admin:shuup_multivendor.products_edit",
-                kwargs={"pk": 9999}
-            ).replace("9999", "xxxx")
+            product_url = reverse("shuup_admin:shuup_multivendor.products_edit", kwargs={"pk": 9999}).replace(
+                "9999", "xxxx"
+            )
             main_product_url = reverse(
-                "shuup_admin:shuup_multivendor.products_edit",
-                kwargs={"pk": main_shop_product.pk}
+                "shuup_admin:shuup_multivendor.products_edit", kwargs={"pk": main_shop_product.pk}
             )
         else:
-            product_url = reverse(
-                "shuup_admin:shop_product.edit",
-                kwargs={"pk": 9999}
-            ).replace("9999", "xxxx")
-            main_product_url = reverse(
-                "shuup_admin:shop_product.edit",
-                kwargs={"pk": main_shop_product.pk}
-            )
+            product_url = reverse("shuup_admin:shop_product.edit", kwargs={"pk": 9999}).replace("9999", "xxxx")
+            main_product_url = reverse("shuup_admin:shop_product.edit", kwargs={"pk": main_shop_product.pk})
 
         combinations_url = reverse(
-            "shuup_admin:shuup_product_variations.product.combinations",
-            kwargs={"pk": main_product.pk}
+            "shuup_admin:shuup_product_variations.product.combinations", kwargs={"pk": main_product.pk}
         )
         default_variations_url = reverse("shuup_admin:shuup_product_variations.variations.list")
         variations_url = reverse(
-            "shuup_admin:shuup_product_variations.product.variations",
-            kwargs={"pk": 9999}
+            "shuup_admin:shuup_product_variations.product.variations", kwargs={"pk": 9999}
         ).replace("9999", "xxxx")
         variable_url = reverse(
-            "shuup_admin:shuup_product_variations.product.variations_variable",
-            kwargs={"pk": 9999}
+            "shuup_admin:shuup_product_variations.product.variations_variable", kwargs={"pk": 9999}
         ).replace("9999", "xxxx")
         variable_value_url = reverse(
-            "shuup_admin:shuup_product_variations.product.variations_variable_value",
-            kwargs={"pk": 9999}
+            "shuup_admin:shuup_product_variations.product.variations_variable_value", kwargs={"pk": 9999}
         ).replace("9999", "xxxx")
 
         return {
@@ -133,5 +113,5 @@ class ProductVariationsSection(Section):
             "default_variations_url": default_variations_url,
             "variations_url": variations_url,
             "variable_url": variable_url,
-            "variable_value_url": variable_value_url
+            "variable_value_url": variable_value_url,
         }

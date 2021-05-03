@@ -10,28 +10,22 @@ from django.core.management import BaseCommand
 from django.utils.text import slugify
 from django.utils.translation import activate
 from shuup.core.models import ProductVariationVariableValue
-from shuup_product_variations.models import (
-    VariationVariable, VariationVariableValue
-)
+
+from shuup_product_variations.models import VariationVariable, VariationVariableValue
 
 
 class Command(BaseCommand):
-
     def handle(self, *args, **options):
         activate(settings.PARLER_DEFAULT_LANGUAGE_CODE)
 
         for variation, variation_value in (
-            ProductVariationVariableValue.objects
-                .language()
-                .all()
-                .values_list("variable__translations__name", "translations__value")
+            ProductVariationVariableValue.objects.language()
+            .all()
+            .values_list("variable__translations__name", "translations__value")
         ):
             variable, created = VariationVariable.objects.get_or_create(
-                identifier=slugify(variation),
-                defaults=dict(name=variation)
+                identifier=slugify(variation), defaults=dict(name=variation)
             )
             value, crated = VariationVariableValue.objects.get_or_create(
-                variable=variable,
-                identifier=slugify(variation_value),
-                defaults=dict(value=variation_value)
+                variable=variable, identifier=slugify(variation_value), defaults=dict(value=variation_value)
             )

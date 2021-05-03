@@ -6,23 +6,15 @@
 # This source code is licensed under the OSL-3.0 license found in the
 # LICENSE file in the root directory of this source tree.
 import json
+
 import pytest
-
-from decimal import Decimal
-
 from django.core.management import call_command
-from django.urls import reverse
 from django.test import Client
+from django.urls import reverse
 from parler.utils.context import switch_language
 from shuup.testing import factories
-from shuup.core.models import (
-    ShopProduct, Product, ProductVariationVariable,
-    ProductVariationVariableValue
-)
 
-from shuup_product_variations.models import (
-    VariationVariable, VariationVariableValue
-)
+from shuup_product_variations.models import VariationVariable, VariationVariableValue
 
 
 @pytest.mark.django_db
@@ -38,37 +30,25 @@ def test_variations_aka_variation_template_models(admin_user):
 
     payload = [
         {
-            "combination": {
-                "Color": "Red",
-                "Size": "XL"
-            },
+            "combination": {"Color": "Red", "Size": "XL"},
             "sku": "red-xl",
             "price": "3.5",
             "stock_count": 15,
         },
         {
-            "combination": {
-                "Color": "Red",
-                "Size": "L"
-            },
+            "combination": {"Color": "Red", "Size": "L"},
             "sku": "red-l",
             "price": "15.5",
             "stock_count": 20,
         },
         {
-            "combination": {
-                "Color": "Blue",
-                "Size": "S"
-            },
+            "combination": {"Color": "Blue", "Size": "S"},
             "sku": "blue-s",
             "price": "16",
             "stock_count": 2,
         },
     ]
-    url = reverse(
-        "shuup_admin:shuup_product_variations.product.combinations",
-        kwargs=dict(pk=shop_product.pk)
-    )
+    url = reverse("shuup_admin:shuup_product_variations.product.combinations", kwargs=dict(pk=shop_product.pk))
     response = client.post(
         url,
         data=payload,
@@ -98,13 +78,10 @@ def test_variations_aka_variation_template_models(admin_user):
 
     color = VariationVariable.objects.filter(identifier="color").first()
     assert color
-    url_for_color = reverse(
-        "shuup_admin:shuup_product_variations.variations_variable",
-        kwargs={"pk": color.pk}
-    )
+    url_for_color = reverse("shuup_admin:shuup_product_variations.variations_variable", kwargs={"pk": color.pk})
 
     assert color.name == "Color"
-    with switch_language(color, 'fi'):
+    with switch_language(color, "fi"):
         assert color.name == "Color"
     response = client.post(
         url_for_color,
@@ -115,7 +92,7 @@ def test_variations_aka_variation_template_models(admin_user):
     color.refresh_from_db()
 
     assert color.name == "Color"
-    with switch_language(color, 'fi'):
+    with switch_language(color, "fi"):
         assert color.name == "Väri"
 
     assert color.ordering == 0
@@ -133,19 +110,18 @@ def test_variations_aka_variation_template_models(admin_user):
         content_type="application/json",
     )
     assert response.status_code == 200
-    
+
     assert VariationVariable.objects.count() == 1
     assert VariationVariableValue.objects.count() == 3
 
     extralarge = VariationVariableValue.objects.filter(identifier="xl").first()
     assert extralarge
     url_for_extralarge = reverse(
-        "shuup_admin:shuup_product_variations.variations_variable_value",
-        kwargs={"pk": extralarge.pk}
+        "shuup_admin:shuup_product_variations.variations_variable_value", kwargs={"pk": extralarge.pk}
     )
 
     assert extralarge.value == "XL"
-    with switch_language(extralarge, 'fi'):
+    with switch_language(extralarge, "fi"):
         assert extralarge.value == "XL"
     response = client.post(
         url_for_extralarge,
@@ -156,7 +132,7 @@ def test_variations_aka_variation_template_models(admin_user):
     extralarge.refresh_from_db()
 
     assert extralarge.value == "XL"
-    with switch_language(extralarge, 'fi'):
+    with switch_language(extralarge, "fi"):
         assert extralarge.value == "Aika iso"
 
     assert extralarge.ordering == 0
@@ -166,7 +142,7 @@ def test_variations_aka_variation_template_models(admin_user):
         content_type="application/json",
     )
     extralarge.refresh_from_db()
-    assert extralarge.ordering == 3    
+    assert extralarge.ordering == 3
 
     response = client.post(
         reverse("shuup_admin:shuup_product_variations.variations.list"),
@@ -174,7 +150,7 @@ def test_variations_aka_variation_template_models(admin_user):
         content_type="application/json",
     )
     assert response.status_code == 200
-    
+
     assert VariationVariable.objects.count() == 1
     assert VariationVariableValue.objects.count() == 2
 
@@ -184,6 +160,6 @@ def test_variations_aka_variation_template_models(admin_user):
         content_type="application/json",
     )
     assert response.status_code == 200
-    
+
     assert VariationVariable.objects.count() == 1
     assert VariationVariableValue.objects.count() == 4

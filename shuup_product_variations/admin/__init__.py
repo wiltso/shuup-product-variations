@@ -19,28 +19,28 @@ class ProductVariationsModule(AdminModule):
             admin_url(
                 r"^shuup_product_variations/(?P<pk>\d+)/combinations/$",
                 "shuup_product_variations.admin.views.products.ProductCombinationsView",
-                name="shuup_product_variations.product.combinations"
+                name="shuup_product_variations.product.combinations",
             ),
             admin_url(
                 r"^shuup_product_variations/(?P<pk>\d+)/product_variations/$",
                 "shuup_product_variations.admin.views.product_variations.ProductVariationsView",
-                name="shuup_product_variations.product.variations"
+                name="shuup_product_variations.product.variations",
             ),
             admin_url(
                 r"^shuup_product_variations/(?P<pk>\d+)/product_variations_variable/$",
                 "shuup_product_variations.admin.views.product_variations.ProductVariationVariableDetailView",
-                name="shuup_product_variations.product.variations_variable"
+                name="shuup_product_variations.product.variations_variable",
             ),
             admin_url(
                 r"^shuup_product_variations/(?P<pk>\d+)/product_variations_variable_value/$",
                 "shuup_product_variations.admin.views.product_variations.ProductVariationVariableValueDetailView",
-                name="shuup_product_variations.product.variations_variable_value"
+                name="shuup_product_variations.product.variations_variable_value",
             ),
             admin_url(
                 r"^shuup_product_variations/variations/$",
                 "shuup_product_variations.admin.views.variations.VariationsListView",
-                name="shuup_product_variations.variations.list"
-            )
+                name="shuup_product_variations.variations.list",
+            ),
         ]
 
     def get_menu_entries(self, request):
@@ -61,22 +61,22 @@ class ProductVariationsOrganizer(AdminModule):
             admin_url(
                 r"^shuup_product_variations/organizer/$",
                 "shuup_product_variations.admin.views.organizer.VariationOganizerView",
-                name="shuup_product_variations.staff_organizer"
+                name="shuup_product_variations.staff_organizer",
             ),
             admin_url(
                 r"^shuup_product_variations/variations/$",
                 "shuup_product_variations.admin.views.variations.VariationsListView",
-                name="shuup_product_variations.variations.list"
+                name="shuup_product_variations.variations.list",
             ),
             admin_url(
                 r"^shuup_product_variations/(?P<pk>\d+)/variations_variable/$",
                 "shuup_product_variations.admin.views.variations.VariationVariableDetailView",
-                name="shuup_product_variations.variations_variable"
+                name="shuup_product_variations.variations_variable",
             ),
             admin_url(
                 r"^shuup_product_variations/(?P<pk>\d+)/variations_variable_value/$",
                 "shuup_product_variations.admin.views.variations.VariationVariableValueDetailView",
-                name="shuup_product_variations.variations_variable_value"
+                name="shuup_product_variations.variations_variable_value",
             ),
         ]
 
@@ -86,6 +86,6 @@ class ProductVariationsOrganizer(AdminModule):
                 text=self.name,
                 icon="fa fa-cube",
                 url="shuup_admin:shuup_product_variations.staff_organizer",
-                category=SETTINGS_MENU_CATEGORY
+                category=SETTINGS_MENU_CATEGORY,
             )
         ]

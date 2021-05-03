@@ -18,13 +18,13 @@ from shuup.utils.models import SortableMixin
 class VariationVariable(TranslatableModel, SortableMixin):
     identifier = InternalIdentifierField(unique=False)
     translations = TranslatedFields(
-        name=models.CharField(max_length=128, verbose_name=_('name')),
+        name=models.CharField(max_length=128, verbose_name=_("name")),
     )
 
     class Meta:
-        verbose_name = _('variation variable')
-        verbose_name_plural = _('variation variables')
-        ordering = ('ordering', )
+        verbose_name = _("variation variable")
+        verbose_name_plural = _("variation variables")
+        ordering = ("ordering",)
 
     def __str__(self):
         return force_text(self.safe_translation_getter("name") or self.identifier or repr(self))
@@ -32,18 +32,24 @@ class VariationVariable(TranslatableModel, SortableMixin):
 
 class VariationVariableValue(TranslatableModel, SortableMixin):
     variable = models.ForeignKey(
-        VariationVariable, related_name='values', on_delete=models.CASCADE, verbose_name=_("variation variable"))
+        VariationVariable, related_name="values", on_delete=models.CASCADE, verbose_name=_("variation variable")
+    )
     identifier = InternalIdentifierField(unique=False)
 
     translations = TranslatedFields(
-        value=models.CharField(max_length=128, verbose_name=_('value')),
+        value=models.CharField(max_length=128, verbose_name=_("value")),
     )
 
     class Meta:
-        verbose_name = _('variation value')
-        verbose_name_plural = _('variation values')
-        unique_together = (("variable", "identifier", ),)
-        ordering = ('ordering', )
+        verbose_name = _("variation value")
+        verbose_name_plural = _("variation values")
+        unique_together = (
+            (
+                "variable",
+                "identifier",
+            ),
+        )
+        ordering = ("ordering",)
 
     def __str__(self):
         return force_text(self.safe_translation_getter("value") or self.identifier or repr(self))

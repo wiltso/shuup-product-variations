@@ -6,17 +6,13 @@
 # This source code is licensed under the OSL-3.0 license found in the
 # LICENSE file in the root directory of this source tree.
 import json
-import pytest
-
 from decimal import Decimal
 
-from django.urls import reverse
+import pytest
 from django.test import Client
+from django.urls import reverse
+from shuup.core.models import Product, ShopProduct
 from shuup.testing import factories
-from shuup.core.models import (
-    ShopProduct, Product, ProductVariationVariable,
-    ProductVariationVariableValue
-)
 
 
 @pytest.mark.django_db
@@ -32,28 +28,19 @@ def test_create_product_variation(admin_user):
 
     payload = [
         {
-            "combination": {
-                "Color": "Red",
-                "Size": "L"
-            },
+            "combination": {"Color": "Red", "Size": "L"},
             "sku": "red-l",
             "price": "15.5",
             "stock_count": 20,
         },
         {
-            "combination": {
-                "Color": "Blue",
-                "Size": "S"
-            },
+            "combination": {"Color": "Blue", "Size": "S"},
             "sku": "blue-s",
             "price": "16",
             "stock_count": 2,
         },
     ]
-    url = reverse(
-        "shuup_admin:shuup_product_variations.product.combinations",
-        kwargs=dict(pk=shop_product.pk)
-    )
+    url = reverse("shuup_admin:shuup_product_variations.product.combinations", kwargs=dict(pk=shop_product.pk))
     response = client.get(url)
     assert response.status_code == 200
     data = json.loads(response.content.decode("utf-8"))
@@ -69,8 +56,8 @@ def test_create_product_variation(admin_user):
     assert product.variation_children.count() == 2
     all_combinations = list(product.get_all_available_combinations())
 
-    red_l_combination = [comb for comb in all_combinations if comb["sku_part"] == 'red-l'][0]
-    blue_s_combination = [comb for comb in all_combinations if comb["sku_part"] == 'blue-s'][0]
+    red_l_combination = [comb for comb in all_combinations if comb["sku_part"] == "red-l"][0]
+    blue_s_combination = [comb for comb in all_combinations if comb["sku_part"] == "blue-s"][0]
 
     red_l_shop_product = ShopProduct.objects.get(product_id=red_l_combination["result_product_pk"])
     blue_s_shop_product = ShopProduct.objects.get(product_id=blue_s_combination["result_product_pk"])
@@ -97,7 +84,6 @@ def test_create_product_variation(admin_user):
     assert len(data["product_data"]) == 0
 
 
-
 @pytest.mark.django_db
 def test_update_product_variation(admin_user):
     shop = factories.get_default_shop()
@@ -110,12 +96,14 @@ def test_update_product_variation(admin_user):
     client.force_login(admin_user)
     assert product.variation_children.count() == 0
 
-    create_payload = [{
-        "combination": {"Color": "Red", "Size": "L"},
-        "sku": "red-l",
-        "price": "15.5",
-        "stock_count": 20,
-    }]
+    create_payload = [
+        {
+            "combination": {"Color": "Red", "Size": "L"},
+            "sku": "red-l",
+            "price": "15.5",
+            "stock_count": 20,
+        }
+    ]
     response = client.post(
         view_url,
         data=create_payload,
@@ -123,12 +111,14 @@ def test_update_product_variation(admin_user):
     )
     assert response.status_code == 200
 
-    update_payload = [{
-        "combination": {"Color": "Red", "Size": "L"},
-        "sku": "red-l2",
-        "price": "21",
-        "stock_count": 4,
-    }]
+    update_payload = [
+        {
+            "combination": {"Color": "Red", "Size": "L"},
+            "sku": "red-l2",
+            "price": "21",
+            "stock_count": 4,
+        }
+    ]
     response = client.post(
         view_url,
         data=update_payload,
@@ -137,18 +127,20 @@ def test_update_product_variation(admin_user):
     assert response.status_code == 200
 
     all_combinations = list(product.get_all_available_combinations())
-    red_l_combination = [comb for comb in all_combinations if comb["sku_part"] == 'red-l'][0]
+    red_l_combination = [comb for comb in all_combinations if comb["sku_part"] == "red-l"][0]
     red_l_shop_product = ShopProduct.objects.get(product_id=red_l_combination["result_product_pk"])
     assert red_l_shop_product.product.sku == "red-l2"
     assert red_l_shop_product.default_price_value == Decimal("21")
     assert supplier.get_stock_status(red_l_combination["result_product_pk"]).logical_count == 4
 
     # test partial update, just price
-    partial_update_payload = [{
-        "combination": {"Color": "Red", "Size": "L"},
-        "sku": "red-l2",
-        "price": "30",
-    }]
+    partial_update_payload = [
+        {
+            "combination": {"Color": "Red", "Size": "L"},
+            "sku": "red-l2",
+            "price": "30",
+        }
+    ]
     response = client.post(
         view_url,
         data=partial_update_payload,
@@ -205,13 +197,9 @@ def test_delete_product_variation(admin_user):
 
     delete_payload = [
         # can delete using the combination
-        {
-            "combination": {"Color": "Red", "Size": "L"}
-        },
+        {"combination": {"Color": "Red", "Size": "L"}},
         # or by sku
-        {
-            "sku": "red-xl"
-        }
+        {"sku": "red-xl"},
     ]
     response = client.delete(
         view_url,
@@ -234,20 +222,19 @@ def test_error_handling(admin_user):
     client.force_login(admin_user)
 
     # missing fields
-    invalid_create_payload = [{
-        "combination": {"Color": "Red", "Size": "L"},
-    }]
+    invalid_create_payload = [
+        {
+            "combination": {"Color": "Red", "Size": "L"},
+        }
+    ]
     response = client.post(view_url, data=invalid_create_payload, content_type="application/json")
     assert response.status_code == 400
     result = response.json()
     assert result["code"] == "validation-fail"
-    assert result["error"]["combinations"][0]['sku'][0] == "This field is required."
+    assert result["error"]["combinations"][0]["sku"][0] == "This field is required."
 
     # can't create using existing SKU
-    invalid_create_payload = [{
-        "combination": {"Color": "Red", "Size": "L"},
-        "sku": product.sku
-    }]
+    invalid_create_payload = [{"combination": {"Color": "Red", "Size": "L"}, "sku": product.sku}]
     response = client.post(view_url, data=invalid_create_payload, content_type="application/json")
     assert response.status_code == 400
     result = response.json()
@@ -255,18 +242,12 @@ def test_error_handling(admin_user):
     assert result["code"] == "sku-exists"
 
     # successfully create
-    invalid_create_payload = [{
-        "combination": {"Color": "Red", "Size": "L"},
-        "sku": "random"
-    }]
+    invalid_create_payload = [{"combination": {"Color": "Red", "Size": "L"}, "sku": "random"}]
     response = client.post(view_url, data=invalid_create_payload, content_type="application/json")
     assert response.status_code == 200
 
     # can't update using existing SKU
-    invalid_create_payload = [{
-        "combination": {"Color": "Red", "Size": "L"},
-        "sku": product.sku
-    }]
+    invalid_create_payload = [{"combination": {"Color": "Red", "Size": "L"}, "sku": product.sku}]
     response = client.post(view_url, data=invalid_create_payload, content_type="application/json")
     assert response.status_code == 400
     result = response.json()
@@ -297,7 +278,7 @@ def test_delete_recover_product_variation(admin_user):
         {
             "combination": {"Color": "Red", "Size": "XL"},
             "sku": "red-xl",
-        }
+        },
     ]
     response = client.post(view_url, data=create_payload, content_type="application/json")
     assert response.status_code == 200

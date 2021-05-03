@@ -10,9 +10,7 @@
 #: Spec that defines the object to use while
 #: creating and deleting variations for a parent product
 #:
-SHUUP_PRODUCT_VARIATIONS_VARIATION_UPDATER_SPEC = (
-    "shuup_product_variations.admin.variation_updater.VariationUpdater"
-)
+SHUUP_PRODUCT_VARIATIONS_VARIATION_UPDATER_SPEC = "shuup_product_variations.admin.variation_updater.VariationUpdater"
 
 #: Maximum variables allwoed
 #:
