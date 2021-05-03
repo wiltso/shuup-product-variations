@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Enter here all the changes made to the development version
 
+### Changed
+
+- Move CI to GHA and use Poetry as dependency manager
+
 ## [1.0.13] - 2021-04-19
 
 ### Added

@@ -8,3 +8,30 @@ authors = ["Shuup <devs@shuup.com>"]
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
+
+
+[tool.poetry.dependencies]
+python = "^3.6"
+shuup = "^2.7"
+shuup-api = "^2"
+shuup-rest-api= "^2"
+
+
+[tool.poetry.dev-dependencies]
+black = "20.8b1"
+flake8 = "^3.9"
+isort = "^5.8"
+pytest = "^6.2"
+pytest-cov = "^2.11"
+pytest-django = "^4.2"
+beautifulsoup4 = "^4"
+
+
+[[tool.poetry.source]]
+name = "shuup"
+url = "https://pypi.shuup.com/simple"
+
+
+[tool.black]
+exclude = "(migrations|node_modules)"
+line_length = 120

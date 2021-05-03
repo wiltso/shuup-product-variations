@@ -6,16 +6,16 @@ This package implements product variations for the [Shuup](https://shuup.com/) p
 
 ## Copyright
 
-Copyright (C) 2012-2020 by Shoop Commerce Ltd. <support@shuup.com>
+Copyright (c) 2012-2021 by Shuup Commerce Inc. support@shuup.com
 
-Shuup is International Registered Trademark & Property of Shoop Commerce Ltd.,
-Business ID: FI27184225,
-Business Address: Iso-Roobertinkatu 20-22, 00120 HELSINKI, Finland.
+Shuup is International Registered Trademark & Property of Shuup Commerce Inc.,
+Business ID: BC1126729,
+Business Address: 1500 West Georgia Suite 1300, Vancouver, BC, V6G-2Z6, Canada.
 
 ## License
 
-Shuup Product Variations addon is published under Open Software License version 3.0 (OSL-3.0).
-See the LICENSE file distributed with Shuup.
+This source code is licensed under the Shuup Commerce Inc - SELF HOSTED SOFTWARE LICENSE AGREEMENT
+executed by Shuup Commerce Inc, DBA as SHUUP® and the Licensee.
 
 ### Documentation
 
@@ -44,10 +44,10 @@ See the LICENSE file distributed with Shuup.
   - Create option (shuup_product_variations_can_create_variations) allows user option to create new variable and variable options for product instead using defaults managed through organizer by staff
   - Update option (shuup_product_variations.can_edit_variations) allows user to manage product variations. Disable this permission when you want to give user option to only update the variations itself but not affect variables or variable values available.
   - From images below you can see example permissions for user who can create product variations but can't get access to the organizer
-  
+
 ![product variation permissions](https://github.com/shuup/shuup-product-variations/blob/master/organizer_permissions.png "Product Variation Permissions")
 ![organizer permissions](https://github.com/shuup/shuup-product-variations/blob/master/product_variation_permissions.png "Organizer Permissions")
 
-  
-  
-  
+
+
+
