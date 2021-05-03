@@ -6,3 +6,8 @@ lang_map = cmn:zh_Hans
 file_filter = shuup_product_variations/locale/<lang>/LC_MESSAGES/django.po
 source_lang = en
 type = PO
+
+[shuup.shuup_product_variations_javascript]
+file_filter = shuup_product_variations/locale/<lang>/LC_MESSAGES/djangojs.po
+source_lang = en
+type = PO
