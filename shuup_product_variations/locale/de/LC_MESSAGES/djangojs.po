@@ -1,0 +1,184 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+# Translators:
+# Christian Hess, 2021
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-02-18 13:04+0000\n"
+"PO-Revision-Date: 2021-05-03 20:42+0000\n"
+"Last-Translator: Christian Hess, 2021\n"
+"Language-Team: German (https://www.transifex.com/shuup/teams/55306/de/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: de\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#, javascript-format
+msgid "This product has more than %s combinations."
+msgstr "Dieses Produkt hat mehr als %s Kombinationen."
+
+msgid ""
+"Please find combinations for edit by selecting variable values from the "
+"select below."
+msgstr ""
+"Finden Sie Kombinationen zum Bearbeiten, indem Sie Variablenwerte aus der "
+"Auswahl unten auswählen."
+
+#, javascript-format
+msgid "Product combinations (%s)"
+msgstr "Produktkombinationen (%s)"
+
+msgid "Filter combinations"
+msgstr "Filterkombinationen"
+
+msgid "Select values for combinations..."
+msgstr "Werte für Kombinationen auswählen ..."
+
+msgid "Updating SKU failed"
+msgstr "Aktualisierung der SKU fehlgeschlagen"
+
+msgid "Updating price failed"
+msgstr "Aktualisierung des Preises fehlgeschlagen"
+
+msgid "Updating..."
+msgstr "Aktualisierung..."
+
+msgid "Updated!"
+msgstr "Aktualisiert!"
+
+msgid "SKU"
+msgstr "Artikelnummer"
+
+msgid "Default Price"
+msgstr "Standardpreis"
+
+msgid "Inventory"
+msgstr "Inventar"
+
+msgid "Edit"
+msgstr "Bearbeiten"
+
+msgid "Loading..."
+msgstr "Wird geladen..."
+
+msgid "Go back to select variables and variable values"
+msgstr "Gehen Sie zurück, um Variablen und Variablenwerte auszuwählen"
+
+msgid "Organize current variations"
+msgstr "Aktuelle Variationen organisieren"
+
+msgid "Go back to current product variations"
+msgstr "Kehren Sie zu den aktuellen Produktvarianten zurück"
+
+msgid "Failed to delete combinations"
+msgstr "Kombinationen konnten nicht gelöscht werden"
+
+msgid "Failed to create combinations"
+msgstr "Kombinationen konnten nicht erstellt werden"
+
+msgid "Maximum variable values reached."
+msgstr "Maximal erreichte Variablenwerte."
+
+msgid "Failed to update combinations."
+msgstr "Kombinationen konnten nicht aktualisiert werden."
+
+msgid "Combinations updated."
+msgstr "Kombinationen aktualisiert."
+
+msgid "Updating variations..."
+msgstr "Variationen aktualisieren ..."
+
+msgid "Keep this page open to update all variations correctly."
+msgstr ""
+"Lassen Sie diese Seite geöffnet, um alle Variationen korrekt zu "
+"aktualisieren."
+
+msgid "Default price value"
+msgstr "Standardpreiswert"
+
+msgid "Changing this value updates the prices for all new combinations."
+msgstr ""
+"Durch Ändern dieses Werts werden die Preise für alle neuen Kombinationen "
+"aktualisiert."
+
+msgid "Default stock count"
+msgstr "Standardbestand"
+
+msgid "Changing this value updates the stocks for all new combinations."
+msgstr ""
+"Durch Ändern dieses Werts werden die Bestände für alle neuen Kombinationen "
+"aktualisiert."
+
+msgid "Confirm pending changes to combinations"
+msgstr "Bestätigen Sie ausstehende Änderungen an Kombinationen"
+
+msgid ""
+"After new combinations are confirmed you can do more editing for each new "
+"item."
+msgstr ""
+"Nachdem neue Kombinationen bestätigt wurden, können Sie für jedes neue "
+"Element weitere Bearbeitungen vornehmen."
+
+msgid "Cancel pending changes to combinations"
+msgstr "Abbrechen ausstehender Änderungen an Kombinationen"
+
+msgid "Make sure all variables has at least one value selected."
+msgstr ""
+"Stellen Sie sicher, dass für alle Variablen mindestens ein Wert ausgewählt "
+"ist."
+
+msgid "Loading organizer failed! Refresh page and try again..."
+msgstr ""
+"Laden des Organizers fehlgeschlagen! Seite aktualisieren und erneut "
+"versuchen ..."
+
+msgid "Variable saved successfully!"
+msgstr "Variable erfolgreich gespeichert!"
+
+msgid "Saving variable failed! Try again..."
+msgstr "Speichervariable fehlgeschlagen! Versuchen Sie es nochmal..."
+
+msgid "Variable value saved successfully!"
+msgstr "Variablenwert erfolgreich gespeichert!"
+
+msgid "Saving variable value failed! Try again..."
+msgstr ""
+"Speichern des Variablenwerts fehlgeschlagen! Versuchen Sie es nochmal..."
+
+msgid "Loading translations failed! Try again..."
+msgstr "Laden der Übersetzungen fehlgeschlagen! Versuchen Sie es nochmal..."
+
+msgid "Translation saved successfully!"
+msgstr "Übersetzung erfolgreich gespeichert!"
+
+msgid "Saving translation failed! Try again..."
+msgstr "Speichern der Übersetzung fehlgeschlagen! Versuchen Sie es nochmal..."
+
+msgid "Go back to ordering variations"
+msgstr "Gehen Sie zurück zur Bestellvariante"
+
+msgid "Translate"
+msgstr "Übersetzen"
+
+msgid "Update variation order, names and translations"
+msgstr "Aktualisieren Sie die Variationsreihenfolge, Namen und Übersetzungen"
+
+msgid "Ordering"
+msgstr "Bestellung"
+
+msgid "Select variations"
+msgstr "Variationen auswählen"
+
+msgid "Select values for variable..."
+msgstr "Werte für Variable auswählen ..."
+
+msgid "Add new variable..."
+msgstr "Neue Variable hinzufügen ..."

@@ -10,6 +10,7 @@ Enter here all the changes made to the development version
 
 ### Changed
 
+- Pull translations from Transifex
 - Move CI to GHA and use Poetry as dependency manager
 
 ## [1.0.13] - 2021-04-19
