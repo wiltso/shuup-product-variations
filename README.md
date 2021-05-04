@@ -1,5 +1,3 @@
-[![PyPI](https://img.shields.io/pypi/v/shuup-product-variations.svg)](https://pypi.org/project/shuup-product-variations/)
-
 # Shuup Product Variations
 
 This package implements product variations for the [Shuup](https://shuup.com/) platform.
