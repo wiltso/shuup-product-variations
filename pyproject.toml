@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shuup-product-variations"
-version = "1.0.14"
+version = "1.0.15"
 description = "Shuup Product Variations"
 authors = ["Shuup <devs@shuup.com>"]
 
