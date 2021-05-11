@@ -286,10 +286,10 @@ const CurrentVariable = ({
     updating || state.updatingSKU || state.updatingDefaultPrice || state.updatingStockCount
   );
   const updatingElement = (
-    <small className="text-warning">{ gettext('Updating...') }</small>
+    <small className="text-warning">{gettext('Updating...')}</small>
   );
   const updateSuccessElement = (
-    <small className="text-success">{ gettext('Updated!') }</small>
+    <small className="text-success">{gettext('Updated!')}</small>
   );
 
   let skuHelpText = <small className="text-info">&nbsp;</small>;
@@ -298,7 +298,7 @@ const CurrentVariable = ({
   } else if (state.skuUpdateSuccess) {
     skuHelpText = updateSuccessElement;
   } else if (state.skuUpdateError) {
-    skuHelpText = <small className="text-danger">{ state.skuUpdateError }</small>;
+    skuHelpText = <small className="text-danger">{state.skuUpdateError}</small>;
   }
 
   let defaultPriceHelpText = <small className="text-info">&nbsp;</small>;
@@ -307,7 +307,7 @@ const CurrentVariable = ({
   } else if (state.defaultPriceUpdateSuccess) {
     defaultPriceHelpText = updateSuccessElement;
   } else if (state.defaultPriceUpdateError) {
-    defaultPriceHelpText = <small className="text-danger">{ state.defaultPriceUpdateError }</small>;
+    defaultPriceHelpText = <small className="text-danger">{state.defaultPriceUpdateError}</small>;
   }
 
   let stockCountHelpText = <small className="text-info">&nbsp;</small>;
@@ -316,7 +316,7 @@ const CurrentVariable = ({
   } else if (state.stockCountUpdateSuccess) {
     stockCountHelpText = updateSuccessElement;
   } else if (state.stockCountUpdateError) {
-    stockCountHelpText = <small className="text-danger">{ state.stockCountUpdateError }</small>;
+    stockCountHelpText = <small className="text-danger">{state.stockCountUpdateError}</small>;
   }
 
   if (!productData) return null;
@@ -328,21 +328,22 @@ const CurrentVariable = ({
   return (
     <div className="d-flex flex-row flex-grow-1 align-items-end">
       <div className="d-flex flex-column flex-grow-1">
-        <small>{ gettext('SKU') }</small>
+        <small>{gettext('SKU')}</small>
         <input
           type="text"
           className="form-control"
           value={state.productData.sku}
           onChange={changeSKU}
           onBlur={updateSKU}
+          maxLength={128}
           disabled={disableInputs || state.defaultPriceUpdateError || state.stockCountUpdateError}
         />
-        { skuHelpText }
+        {skuHelpText}
       </div>
       <div className="d-flex flex-column flex-grow-1 ml-1 mr-1">
         <small>
-          { gettext('Default Price') }
-          { ' (' + window.SHUUP_PRODUCT_VARIATIONS_DATA.currency + ') ' }
+          {gettext('Default Price')}
+          {' (' + window.SHUUP_PRODUCT_VARIATIONS_DATA.currency + ') '}
         </small>
         <input
           type="number"
@@ -352,13 +353,13 @@ const CurrentVariable = ({
           onBlur={updateDefaultPrice}
           disabled={disableInputs || state.skuUpdateError || state.stockCountUpdateError}
         />
-        { defaultPriceHelpText }
+        {defaultPriceHelpText}
       </div>
       {window.SHUUP_PRODUCT_VARIATIONS_DATA.stock_managed && (
         <div className="d-flex flex-column flex-grow-1">
           <small>
-            { gettext('Inventory') }
-            { ' (' + window.SHUUP_PRODUCT_VARIATIONS_DATA.sales_unit + ') ' }
+            {gettext('Inventory')}
+            {' (' + window.SHUUP_PRODUCT_VARIATIONS_DATA.sales_unit + ') '}
           </small>
           <input
             type="number"
@@ -368,14 +369,14 @@ const CurrentVariable = ({
             onBlur={updateStockCount}
             disabled={disableInputs || state.skuUpdateError || state.defaultPriceUpdateError}
           />
-          { stockCountHelpText }
+          { stockCountHelpText}
         </div>
       )}
       <div className="d-flex flex-column align-items-end">
         <a href={productUrlTemplate.replace('xxxx', state.productData.pk) + '#product-variations-section'}>
           <i className="fa fa-edit fa-2x align-self-center ml-2" />
         </a>
-        <small className="text-info align-self-center">{ gettext('Edit') }</small>
+        <small className="text-info align-self-center">{gettext('Edit')}</small>
       </div>
     </div>
   );
