@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Enter here all the changes made to the development version
 
+## [1.0.16] - 2021-05-11
+
 ### Fixed
 
 - Prevent trying to save SKUs greater than 128 characters
