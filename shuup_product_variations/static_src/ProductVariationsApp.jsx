@@ -203,9 +203,18 @@ const ProductVariationsApp = () => {
     getCombinations(variationData, 0, [], {}).forEach((item) => {
       const productId = getProductIdForCombination(state.productIdToCombinationMap, item);
       if (!productId) {
-        const newSKUCombinationPart = Object.keys(item).map((k) => k + '-' + item[k]).join('-').toLowerCase()
+        const newSKUCombinationPart = Object.keys(item)
+          .map((k) => k + '-' + item[k])
+          .join('-')
+          .toLowerCase()
           .replace(' ', '-');
-        const newSKU = window.SHUUP_PRODUCT_VARIATIONS_DATA.default_sku + '-' + newSKUCombinationPart;
+
+        // calculate the string size to use from the default SKU
+        // 128 chars is the max SKU size in the database
+        const maxSKUSize = 128 - newSKUCombinationPart.length - 1;
+        const defaultSKU = window.SHUUP_PRODUCT_VARIATIONS_DATA.default_sku.substring(0, Math.max(0, maxSKUSize)) + '-';
+        const newSKU = defaultSKU + newSKUCombinationPart;
+
         newProductData.push({
           combination: item,
           sku: newSKU,
@@ -368,7 +377,7 @@ const ProductVariationsApp = () => {
     return (
       <div className="flex-d flex-grow-1 text-center">
         <div className="spinner-border text-primary" role="status">
-          <span className="sr-only">{ gettext('Loading...') }</span>
+          <span className="sr-only">{gettext('Loading...')}</span>
         </div>
       </div>
     );
@@ -450,7 +459,7 @@ const ProductVariationsApp = () => {
       <div>
         <hr />
         <div className="d-flex flex-column flex-grow-1 m-3">
-          <small><strong>{ gettext('Default price value') }</strong></small>
+          <small><strong>{gettext('Default price value')}</strong></small>
           <input
             type="number"
             className="form-control"
@@ -470,10 +479,10 @@ const ProductVariationsApp = () => {
             }}
             disabled={state.updating}
           />
-          <small>{ gettext('Changing this value updates the prices for all new combinations.') }</small>
+          <small>{gettext('Changing this value updates the prices for all new combinations.')}</small>
         </div>
         <div className="d-flex flex-column flex-grow-1 m-3">
-          <small><strong>{ gettext('Default stock count') }</strong></small>
+          <small><strong>{gettext('Default stock count')}</strong></small>
           <input
             type="number"
             className="form-control"
@@ -490,7 +499,7 @@ const ProductVariationsApp = () => {
             }}
             disabled={state.updating}
           />
-          <small>{ gettext('Changing this value updates the stocks for all new combinations.') }</small>
+          <small>{gettext('Changing this value updates the stocks for all new combinations.')}</small>
         </div>
         <div className="d-flex flex-column m-3 mb-4">
           <button
@@ -501,7 +510,7 @@ const ProductVariationsApp = () => {
               finalizePendingCombinations();
             }}
           >
-            { gettext('Confirm pending changes to combinations') }
+            {gettext('Confirm pending changes to combinations')}
           </button>
           <small className="text-center">
             {gettext('After new combinations are confirmed you can do more editing for each new item.')}
@@ -517,7 +526,7 @@ const ProductVariationsApp = () => {
               combinationsToDelete: {},
             }))}
           >
-            { gettext('Cancel pending changes to combinations') }
+            {gettext('Cancel pending changes to combinations')}
           </button>
         </div>
         <hr />
@@ -531,7 +540,7 @@ const ProductVariationsApp = () => {
           className="btn btn-primary mb-4"
           onClick={() => setState((prevState) => ({ ...prevState, organizing: true }))}
         >
-          { gettext('Organize current variations') }
+          {gettext('Organize current variations')}
         </button>
       </div>
     );
@@ -555,7 +564,7 @@ const ProductVariationsApp = () => {
         variationsUrl={window.SHUUP_PRODUCT_VARIATIONS_DATA.default_variations_url}
       />
       {hasAnyVariationsMissingValues ? (
-        <h3 className="mb-4">{ gettext('Make sure all variables has at least one value selected.') }</h3>
+        <h3 className="mb-4">{gettext('Make sure all variables has at least one value selected.')}</h3>
       ) : (
         <div>
           {actionsComponent}

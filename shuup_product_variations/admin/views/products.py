@@ -161,7 +161,7 @@ class ProductCombinationsView(DetailView):
                 serializer.save()
                 activate(old_language)
             except ValidationError as exc:
-                return JsonResponse({"error": exc.message, "code": exc.code}, status=400)
+                return JsonResponse({"error": ", ".join(exc.messages), "code": exc.code}, status=400)
 
         return JsonResponse(serializer.validated_data)
 
@@ -188,6 +188,6 @@ class ProductCombinationsView(DetailView):
             serializer.save()
             activate(old_language)
         except ValidationError as exc:
-            return JsonResponse({"error": exc.message, "code": exc.code}, status=400)
+            return JsonResponse({"error": ", ".join(exc.messages), "code": exc.code}, status=400)
 
         return JsonResponse({})
