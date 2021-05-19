@@ -13,7 +13,8 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.transaction import atomic
 from django.http import JsonResponse
-from django.utils.translation import activate, get_language, ugettext_lazy as _
+from django.utils.translation import activate, get_language
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView
 from shuup.admin.shop_provider import get_shop
 from shuup.admin.supplier_provider import get_supplier

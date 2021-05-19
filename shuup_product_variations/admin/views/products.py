@@ -16,7 +16,8 @@ from django.db.models.functions import Coalesce
 from django.db.transaction import atomic
 from django.http import JsonResponse
 from django.utils.encoding import force_text
-from django.utils.translation import activate, get_language, ugettext_lazy as _
+from django.utils.translation import activate, get_language
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic import DetailView
 from shuup.admin.shop_provider import get_shop
 from shuup.admin.supplier_provider import get_supplier

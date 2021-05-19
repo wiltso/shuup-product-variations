@@ -35,3 +35,9 @@ url = "https://pypi.shuup.com/simple"
 [tool.black]
 exclude = "(migrations|node_modules)"
 line_length = 120
+
+[tool.isort]
+profile = "black"
+line_length=120
+atomic = true
+skip_glob = ["*/migrations/*", "*/node_modules/*"]
