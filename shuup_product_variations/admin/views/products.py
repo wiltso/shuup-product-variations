@@ -78,7 +78,9 @@ class ProductCombinationsView(DetailView):
         is_simple_supplier_installed = has_installed("shuup.simple_supplier")
 
         stock_managed = bool(
-            is_simple_supplier_installed and supplier.module_identifier == "simple_supplier" and supplier.stock_managed
+            is_simple_supplier_installed
+            and "simple_supplier" in supplier.supplier_modules.all().values_list("module_identifier", flat=True)
+            and supplier.stock_managed
         )
 
         is_multivendor_installed = has_installed("shuup_multivendor")

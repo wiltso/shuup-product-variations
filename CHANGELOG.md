@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Enter here all the changes made to the development version
 
+### Fixed
+
+- Fix so product variations works with suppliers having multiple supplier modules
+
 ### Changed
 
 - Move isort to pyproject.toml
